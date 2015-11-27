@@ -1,0 +1,32 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/connect.png</file>
+        <file>images/disconnect.png</file>
+        <file>images/application-exit.png</file>
+        <file>images/settings.png</file>
+        <file>images/clear.png</file>
+        <file>images/DeleteRed.png</file>
+        <file>images/VS.png</file>
+        <file>images/VSinv.png</file>
+        <file>images/devil.png</file>
+        <file>images/penguin.png</file>
+        <file>images/underConstruct.svg</file>
+        <file>images/questionmark.png</file>
+        <file>images/VS.ico</file>
+        <file>images/folder-512.png</file>
+        <file>images/buchsen_schwarz.ico</file>
+        <file>images/buchserot.ico</file>
+        <file>images/dvm.png</file>
+        <file>images/dc.png</file>
+        <file>images/ac.png</file>
+        <file>images/power2.png</file>
+        <file>images/dc2.png</file>
+        <file>images/unlocked.png</file>
+        <file>images/locked.png</file>
+        <file>images/fugen.png</file>
+        <file>images/dvm_ACDC.png</file>
+        <file>images/dvm_DC.png</file>
+        <file>images/waveformSine.png</file>
+        <file>images/waveformRect.png</file>
+    </qresource>
+</RCC>
