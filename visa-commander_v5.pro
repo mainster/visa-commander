@@ -13,7 +13,7 @@ greaterThan(QT_MAJOR_VERSION, 4) {
 }
 
 QMAKE_CXX = ccache g++
-TARGET = visa-commander_v4-71
+TARGET = visa-commander_v5
 TEMPLATE = app
 #QMAKE_CXXFLAGS_RELEASE -= -O2
 #CONFIG += console
@@ -62,7 +62,7 @@ FORMS    += mainwindow.ui \
     visa.ui
 
 RESOURCES += \
-    visa-commander_v4-71.qrc
+    visa-commander_v5.qrc
 
 DISTFILES +=
 
