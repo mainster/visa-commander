@@ -19,7 +19,7 @@ class IOEdit;
 #undef SETFONT
 
 
-IOEdit* IOEdit::instance = NULL; 
+IOEdit* IOEdit::inst = NULL;
 
 /** RINGBUFFER */
 const IOEdit::HTMLcode IOEdit::html = { 
@@ -70,7 +70,7 @@ IOEdit::IOEdit(quint64 maxChars, QWidget *parent)
 #define QFOLDINGSTART {
    /** RINGBUFFER */
 
-   QWidget *ringWin = new QWidget();
+   QWidget *ringWin = new QWidget( parentWidget() );
    cbFindSeq = new QComboBox(this);
    rbShowHeader = new QRadioButton(this);
    rbShowStdBy = new QRadioButton(this);

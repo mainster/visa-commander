@@ -4,6 +4,9 @@
 #include <QSettings>
 #include <QMessageBox>
 #include <QInputDialog>
+#include <QTableView>
+#include <QList>
+#include <QAction>
 
 #include "visa.h"
 #include "ui_visa.h"
@@ -19,12 +22,12 @@
 #include "power.h"
 #include "fugen.h"
 
-#define MAX_CONSOLE_CHARS  8000
 #define hardware_xxx_dat_rew QString("/opt/Visatronic/visascope-3.1/share/" \
    "hardware_values/rewSort_hardware_137000.dat")
 #define hardware_xxx_dat QString("/opt/Visatronic/visascope-3.1/share/" \
    "hardware_values/hardware_137000.dat")
 
+const int Visa::MAX_CONSOLE_CHARS = 8000;
 
 /**
  * Initialize structs that holds visa scope sequences,
@@ -81,6 +84,7 @@ Visa::Visa(QWidget *parent) :
    /** Initial setup */
    gs.hw_xxx_dat_loaded = false;
    gs.calibrated        = false;
+   newParent = parent;
 
    QSETTINGS;
    int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
@@ -91,10 +95,10 @@ Visa::Visa(QWidget *parent) :
    driver   = Driver::getInstance();
    ioedit   = IOEdit::getInstance(maxcfg, this);
    visareg  = new VisaReg(this);
-//   visareg  = VisaReg::getInstance();
+   //   visareg  = VisaReg::getInstance();
    calc     = Calc::getInstance();
    fugen    = 0x00;
-
+   pwr      = 0x00;
    dvmDc    = 0x00;
    dvmAcDc  = 0x00;
 
@@ -199,6 +203,8 @@ Visa::Visa(QWidget *parent) :
 
    /** Start program heartbeat */
    hbeat->tim->start();
+
+   this->installEventFilter( this );
 }
 
 Visa::~Visa() {
@@ -305,8 +311,8 @@ void Visa::initActionsConnections() {
    connect( ui->actionSnapShot,     SIGNAL(triggered()),
             this,                   SLOT(onActSnapShotTriggered()));
 
-   connect( ui->actionPower,        SIGNAL(triggered()),
-            this,                   SLOT(onActPowerTriggered()));
+   connect( ui->actionPower,        SIGNAL(triggered(bool)),
+            this,                   SLOT(onActPowerTriggered(bool)));
 
    connect( ui->actionFuGen,        SIGNAL(triggered(bool)),
             this,                   SLOT(onActFuGenTriggered(bool)));
@@ -329,7 +335,7 @@ void Visa::initActionsConnections() {
 bool Visa::loadPersistance() {
    QSETTINGS;
    config.beginGroup("Tab_UI_settings");  {
-      ui->tabWidget->setCurrentIndex(config.value("tabWidgetIdx").toInt());
+      ui->tabCtrls->setCurrentIndex(config.value("tabCtrlsIdx").toInt());
 
       QStringList list = config.value("StringList/repeatCustomSeq").toString().split(",");
       cbModelRepeatSeq = new QStringListModel(list);
@@ -361,7 +367,7 @@ bool Visa::savePersistance() {
    QSETTINGS;
 
    config.beginGroup("Tab_UI_settings");  {
-      config.setValue("tabWidgetIdx", ui->tabWidget->currentIndex());
+      config.setValue("tabCtrlsIdx", ui->tabCtrls->currentIndex());
 
       QStringList list = cbModelRepeatSeq->stringList();
       config.setValue("StringList/repeatCustomSeq", list.join(","));
@@ -444,11 +450,11 @@ void Visa::onBtnOpenRegView() {
 }
 void Visa::onBtnRefreshRegMap() {
    /**
-     * If this slot is executed and the current tabWidget index is NOT "RAM",
+     * If this slot is executed and the current tabCtrls index is NOT "RAM",
      * deactivate the refresh register map timer
      */
-   if (! QString(ui->tabWidget->tabText(
-                    ui->tabWidget->currentIndex() )).contains("RAM")) {
+   if (! QString(ui->tabCtrls->tabText(
+                    ui->tabCtrls->currentIndex() )).contains("RAM")) {
       reqRefreshTim->stop();
       return;
    }
@@ -629,19 +635,44 @@ void Visa::onLe8a8bChanged(QString str) {
    }
    ui->le8a8b->setText( str );
 }
-void Visa::onActPowerTriggered() {
-   pwr = new Power();
-   pwr->show();
+void Visa::onActPowerTriggered(bool onoff) {
+#define GEOM   tr("/geometry")
+   QSETTINGS;
+
+   (pwr == 0x00)
+         ?  pwr = Power::getInstance( newParent )
+         :  pwr = Power::getObjectPtr();
+
+   if (! onoff)
+      config.setValue(pwr->objectName() + GEOM, pwr->saveGeometry());
+   else {
+      try {
+         pwr->restoreGeometry(config.value(pwr->objectName() + GEOM,"").toByteArray());
+      }  catch (...) {
+
+      }
+   }
+
+   pwr->setVisible(onoff);
 }
 void Visa::setSnifferTimEnabled(bool onoff) {
    sniffTim->setEnabled(onoff);
 }
 void Visa::onActFuGenTriggered(bool onoff) {
-   if (fugen == 0x00)
-      fugen = FuGen::getInstance();
+#define GEOM   tr("/geometry")
+   QSETTINGS;
+
+   (fugen == 0x00)
+         ?  fugen = FuGen::getInstance( newParent )
+         :  fugen = FuGen::getObjectPtr();
+
+   if (! onoff)
+      config.setValue(fugen->objectName() + GEOM, fugen->saveGeometry());
+   else
+      fugen->restoreGeometry(config.value(fugen->objectName() + GEOM,"")
+                             .toByteArray());
 
    fugen->setVisible(onoff);
-
 }
 
 /* ======================================================================== */
@@ -825,29 +856,53 @@ char *Visa::convert(QString in) {
  * Public slot that calls the destructor
  */
 void Visa::quit() {
-   this->close();
+   delete this;
 }
 void Visa::closeChildsAlso() {
    QSETTINGS;
 
-   QString cfgType;
    if ( dvmDc ) {
       if ( dvmDc->dvmHasType == dvmType_DC ) {
-         cfgType = tr("DvmDc");
+         QString cfgType = tr("DvmDc");
          config.setValue(cfgType + "/geometry", dvmDc->saveGeometry());
-         delete dvmDc;
+         //         delete dvmDc;
+         dvmDc->close();
       }
    }
 
    if ( dvmAcDc ) {
       if ( dvmAcDc->dvmHasType == dvmType_ACDC ) {
-         cfgType = tr("DvmAcDc");
+         QString cfgType = tr("DvmAcDc");
          config.setValue(cfgType + "/geometry", dvmAcDc->saveGeometry());
-         delete dvmAcDc;
+         //         delete dvmAcDc;
+         dvmAcDc->close();
       }
    }
 
-   quit();
+   if ( pwr ) {
+      config.setValue(pwr->objectName() + "/geometry",
+                      pwr->saveGeometry());
+      //      delete pwr;
+      pwr->close();
+   }
+
+   if ( fugen ) {
+      config.setValue(fugen->objectName() + "/geometry",
+                      fugen->saveGeometry());
+      //      delete fugen;
+      fugen->close();
+   }
+
+   //   this->disconnect();
+   this->close();
+   //   QVector<QAction *> mainwinActs = parentWidget()->parentWidget()
+   //         ->actions().toVector();
+
+   //   foreach (QAction *act, mainwinActs) {
+   //      if (act->objectName().contains(tr("actionVisa")))
+   //         act->setChecked(false);
+   //   }
+
 }
 void Visa::about() {
    QMessageBox::
@@ -1064,10 +1119,8 @@ void Visa::refreshGS() {
 void Visa::childsToDbg() {
    Q_INFO << this->children();
 }
-void Visa::setVisaLED_VLogic(Visa::LEDs cLed,
-                             bool VlogicEn,
-                             quint8 volt,
-                             VisaReg* vr) {
+void Visa::setVisaLED_VLogic(Visa::LEDs cLed, bool VlogicEn,
+                             quint8 volt, VisaReg* vr) {
    if (regLedVlogic == 0)
       regLedVlogic = new Reg_bebf();
 
@@ -1208,5 +1261,18 @@ void Visa::keyPressEvent(QKeyEvent *event) {
             qWarning();
          }
       }
+   }
+}
+void Visa::closeEvent(QCloseEvent *) {
+   QList<QAction *> mwActs =
+         qApp->findChildren<QAction *>( );
+
+   QList<QWidget *> widgets = parentWidget()->findChildren<QWidget *>();
+
+   Q_INFO << widgets;
+
+   foreach (QAction *act, mwActs) {
+      if (act->objectName().contains("visa", Qt::CaseInsensitive))
+         act->setChecked( false );
    }
 }

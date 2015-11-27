@@ -167,6 +167,15 @@ public:
 
    supply_t *supply;
    explicit Power(QWidget *parent = 0);
+   static Power *getInstance(QWidget *parent/* = 0*/) {
+      if(inst == 0)
+         inst = new Power(parent);
+      return inst;
+   }
+   static Power *getObjectPtr() {
+      return inst;
+   }
+
    ~Power();
 
 public slots:
@@ -201,6 +210,7 @@ private:
    I_MIN_INT      = 4096;
 
    Ui::Power   *ui;
+   static Power   *inst;
    QTimer      *timCycl;
    int         mouseWheelCnt;
    VisaReg     *vr;

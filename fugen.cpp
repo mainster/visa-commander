@@ -16,9 +16,10 @@
 class FuGen;
 class VisaReg;
 
-#define WHEELEVENT_OBJECT_NAME 1
+#define  WHEELEVENT_OBJECT_NAME   1
 
-FuGen    *FuGen::inst = 0;
+FuGen    *FuGen::inst   = 0x00;
+VisaReg  *FuGen::vr     = 0x00;
 
 /* ======================================================================== */
 /*                     class constructor                                    */
@@ -305,3 +306,22 @@ const QByteArray FuGen::sinTbl =
       "FEFEFEFEFEFEFEFEFEFEFEFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
       "FFFFFFFFFFFFFFFF";
 #define QFOLDINGEND }
+
+
+int FuGen::genCfg_t::convLCD2amp(double dAmp, FuGen::add_type type) {
+//   vrs = VisaReg::getObjectPtr();
+   FuGens::amp_rngs rng = FuGen::calcAmp_rng();
+
+   if (type == FuGen::type_increment)
+      Amp.float_  += dAmp;
+   else Amp.float_ = dAmp;
+
+   Amp.int_ = (uint16_t)((double) 4095 *
+                         dAmp/((double)vr->H[31] * Kx( rng )));
+
+   /** Range check according to page 56, equ. (12.3) */
+   if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
+      Amp.int_ = -1;
+
+   return 0;
+}

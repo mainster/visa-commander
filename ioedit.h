@@ -80,14 +80,13 @@ public:
 
    explicit IOEdit(quint64 maxChars = 0,
                    QWidget *parent = 0);
-   static IOEdit* getInstance(quint64 maxChars = 0,
-                              QWidget *parent = 0) {
-      if (instance == NULL)
-         instance = new IOEdit(maxChars, parent);
-      return instance;
+   static IOEdit* getInstance(quint64 maxChars, QWidget *parent/* = 0*/) {
+      if (inst == 0x00)
+         inst = new IOEdit(maxChars, parent);
+      return inst;
    }
    static IOEdit* getObjectPtr() {
-      return instance;
+      return inst;
    }
    ~IOEdit();
 
@@ -153,7 +152,7 @@ public slots:
 
 private:
    QFont fontTxLines, fontRxLines;
-   static IOEdit * instance;
+   static IOEdit * inst;
    Driver * driver;
    qint64 rxCtr;
 

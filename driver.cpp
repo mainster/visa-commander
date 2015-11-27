@@ -29,15 +29,20 @@ Driver* Driver::instance = 0;
  \param removeHead
  \param parent
 */
-Driver::Driver(QString eolPatt,
-               bool newLine,
-               bool removeHead,
-               Visa *parent) :
+Driver::Driver(QString eolPatt, bool newLine,
+               bool removeHead, Visa *parent) :
    QObject(parent) {
+   QSETTINGS;
+
+   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
+                             Visa::MAX_CONSOLE_CHARS).toInt();
+
+   MIN_FRAME_SIZE_VAR = config.value("ReadOnly/MIN_FRAME_SIZE",
+                                     MIN_FRAMESIZE).toInt();
 
    serial = new QSerialPort();
    settings = new PortDialog();
-   ioedit   = IOEdit::getInstance();
+   ioedit   = IOEdit::getInstance(maxcfg, parent);
 
 
    /////////////////////////////////////
@@ -57,10 +62,6 @@ Driver::Driver(QString eolPatt,
    rxBuffReq.data.clear();// = new QByteArray();
    rxBuffReq.expectedByteCount = 0;
    rxBuffReq.rxByteCount = 0;
-
-   QSETTINGS;
-   MIN_FRAME_SIZE_VAR = config.value("ReadOnly/MIN_FRAME_SIZE",
-                                     MIN_FRAMESIZE).toInt();
 
    connect(serial,
            SIGNAL(error(QSerialPort::SerialPortError)), this,

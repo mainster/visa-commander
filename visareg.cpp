@@ -25,6 +25,9 @@ QVector<double> VisaReg::H(100);
 VisaReg::VisaReg(QObject *parent) :
    QObject(parent) {
 
+//   QSETTINGS;
+//   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
+//                             Visa::MAX_CONSOLE_CHARS).toInt();
    /**
     * Initial state of HW register structures
     */
@@ -34,7 +37,8 @@ VisaReg::VisaReg(QObject *parent) :
    timReqTimeout = new QTimer();
    /** Request for a pointer to driver instance */
    driver = Driver::getObjectPtr();    //?????
-   ioedit = IOEdit::getInstance();
+//   ioedit = IOEdit::getInstance(maxcfg, parent->parent());
+   ioedit = IOEdit::getObjectPtr();
    visa   = (Visa*) parent;
 
    regActRamTrig = new Reg_0609();

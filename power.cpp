@@ -16,6 +16,8 @@
 #define WHEELEVENT_OBJECT_NAME
 #undef WHEELEVENT_OBJECT_NAME
 
+Power * Power::inst = 0x00;
+
 /* ======================================================================== */
 /*                     class constructor                                    */
 /* ======================================================================== */
@@ -63,7 +65,6 @@ Power::Power(QWidget *parent) :
    focusOkObj.append( this->objectName() );
 
 }
-
 Power::~Power() {
    delete ui;
 }

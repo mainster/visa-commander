@@ -20,7 +20,8 @@ class FuGen;
 class Calc;
 class Power;
 class Reg_bebf;
-
+class Driver;
+class Dvm;
 
 /** Time division factor for some debug prints */
 #define HEARTBEAT_DIVIDER  int(1000 / 250)
@@ -169,19 +170,20 @@ public:
    };
    Q_DECLARE_FLAGS(LEDs, visaLED)
 
-
    static infoFromVisascope visaInfo;
-   void keyPressEvent(QKeyEvent *);
+
    explicit Visa(QWidget *parent = 0);
-   static Visa *getInstance() {
+   static Visa *getInstance(QWidget *parent/* = 0*/) {
       if(inst == 0)
-         inst = new Visa();
+         inst = new Visa(parent);
       return inst;
    }
    static Visa *getObjectPtr() {
       return inst;
    }
    ~Visa();
+
+   static const int MAX_CONSOLE_CHARS;
 
    void cfgVisaLED(enum CFG_LED state);
    char *convert(QString in);
@@ -201,7 +203,7 @@ signals:
 
 public slots:
    void footerRefreshVisa();
-//   void SinToRam();
+   void SinToRam();
    void onActionRegistersOverview();
    void onBtnLoadSinClicked();
    void onTim1Timeout();
@@ -213,8 +215,7 @@ public slots:
    void onErrorReceived(QString errStr);
    void onDriverPortConnected();
    void onDriverPortDisconnected();
-   void onSerialBaudChanged(
-         qint32 baud, QSerialPort::Directions dir);
+   void onSerialBaudChanged(qint32 baud, QSerialPort::Directions dir);
    bool savePersistance();
    bool loadPersistance();
    void onBtnDeleteCurrIdxClicked();
@@ -239,7 +240,7 @@ public slots:
    void onActSnapShotTriggered();
    void onBtn8a8bClicked();
    void onLe8a8bChanged(QString str);
-   void onActPowerTriggered();
+   void onActPowerTriggered(bool onoff);
    void setSnifferTimEnabled(bool onoff);
    bool getUiClearConsoleIsChecked();
    void setUiClearConsoleChecked(bool b);
@@ -248,7 +249,9 @@ public slots:
    bool getUiPeriodicReqIsChecked();
    void setUiPeriodicReqChecked(bool b);
    void onActFuGenTriggered(bool onoff);
+   void keyPressEvent(QKeyEvent *);
 
+   void closeEvent(QCloseEvent *);
 protected:
    void initActionsConnections();
 
@@ -269,13 +272,15 @@ private:
    QString  txStr;
 
    Register *regFrm;
-   class Driver   *driver;
+   Driver   *driver;
    IOEdit   *ioedit;
    VisaReg  *visareg;
-   class Dvm      *dvmDc, *dvmAcDc;
+   Dvm      *dvmDc, *dvmAcDc;
    FuGen    *fugen;
    Calc     *calc;
    Power    *pwr;
+
+   QWidget *newParent;
 
    QTextCharFormat formatDefault,  //< Object to store default format settings
    formatLHS,      //< Object to store format settings of LHS strings
@@ -291,6 +296,7 @@ private:
    QStringListModel* cbModelRepeatSeq;
    static Reg_bebf * regLedVlogic;
    formateds le8a8bForm;
+
 };
 Q_DECLARE_OPERATORS_FOR_FLAGS(Visa::LEDs)
 

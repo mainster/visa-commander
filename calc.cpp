@@ -15,7 +15,7 @@
 
 class Calc;
 
-Calc* Calc::inst = 0;
+Calc* Calc::inst = 0x00;
 
 /* ======================================================================== */
 /*                     class constructor                                    */
@@ -23,8 +23,14 @@ Calc* Calc::inst = 0;
 Calc::Calc(QWidget *parent) :
    QObject(parent) {
 
-   visareg = VisaReg::getInstance();
-   ioedit   = IOEdit::getInstance();
+   QSETTINGS;
+   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
+                             Visa::MAX_CONSOLE_CHARS).toInt();
+
+//   visareg = VisaReg::getInstance();
+   ioedit   = IOEdit::getInstance(maxcfg, parent );
+   visareg = VisaReg::getObjectPtr();
+//   ioedit   = IOEdit::getObjectPtr();
    eepromRx = new QVector<uint16_t>(100);
 }
 
@@ -300,7 +306,7 @@ int Calc::loadHardwareDat(QString path) {
       cCalib[lst[0].toInt()].Hd = lst[1].toDouble();
       cCalib[lst[0].toInt()].note = lst[2].remove(" ");
    }
-   IOEdit *ioedit = IOEdit::getInstance();
+   IOEdit *ioedit = IOEdit::getObjectPtr();
    ioedit->putInfoLine("Hardware values read!");
 
    /** Remove the prior over-resized count of vector components */

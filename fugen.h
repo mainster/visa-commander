@@ -44,9 +44,6 @@ public:
    };
    Q_DECLARE_FLAGS(add_types, add_type)
 
-   explicit FuGen(QWidget *parent = 0);
-   ~FuGen();
-
    struct tuple_t {
       double   float_ ;
       int      int_ ;
@@ -82,22 +79,7 @@ public:
       */
       ///< --------------- convert Amplitude -------------------------------
       ///< -----------------------------------------------------------------
-      int convLCD2amp(double dAmp, add_type type = FuGen::type_increment) {
-         FuGens::amp_rngs rng = FuGen::calcAmp_rng();
-
-         if (type == FuGen::type_increment)
-            Amp.float_  += dAmp;
-         else Amp.float_ = dAmp;
-
-//         Amp.int_    = (uint16_t)((double) 4095 *
-//                               dAmp/((double)vr->H[31] * Kx( rng )));
-
-         /** Range check according to page 56, equ. (12.3) */
-         if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
-            Amp.int_ = -1;
-
-         return 0;
-      }
+      int convLCD2amp(double dAmp, add_type type = FuGen::type_increment);
       ///< --------------- convert Offset ----------------------------------
       ///< -----------------------------------------------------------------
       int convLCD2offs(double dOffs, add_type type = FuGen::type_increment) {
@@ -279,17 +261,23 @@ public:
    typedef struct genCfg_t genCfg_t;
    genCfg_t *genCfg;
 
-   void initUiElements();
-   uint16_t calcAmplRegVal(double physAmp);
-   uint16_t calcOffsRegVal(double physOffs);
-   static FuGen *getInstance() {
+   /* ======================================================================== */
+   /*                     class constructor                                    */
+   /* ======================================================================== */
+   explicit FuGen(QWidget *parent = 0);
+   static FuGen *getInstance(QWidget *parent = 0) {
       if(inst == 0)
-         inst = new FuGen();
+         inst = new FuGen(parent);
       return inst;
    }
    static FuGen *getObjectPtr() {
       return inst;
    }
+   ~FuGen();
+
+   void initUiElements();
+   uint16_t calcAmplRegVal(double physAmp);
+   uint16_t calcOffsRegVal(double physOffs);
    static double Kx(FuGens::amp_rngs fRng);
 
 public slots:
@@ -304,11 +292,11 @@ public slots:
 private:
    Ui::FuGen   *ui;
    QTimer      *timCycl;
-   VisaReg     *vr;
    IOEdit      *ioedit ;
    Visa        *visa;
    int         mouseWheelCnt;
 
+   static VisaReg *vr;
    static FuGen *inst;
    static const QByteArray sinTbl;
    static const double

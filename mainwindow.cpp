@@ -12,7 +12,7 @@ MainWindow::MainWindow(QWidget *parent) :
    ui(new Ui::MainWindow) {
    ui->setupUi(this);
 
-   visa = Visa::getInstance();
+   visa = Visa::getInstance(/*parent->window()*/0);
 
    /**< Init ui action connections */
    initActionsConnections();
@@ -119,8 +119,10 @@ void MainWindow::CRASHME() {
    qWarning() << "byebye";
 }
 void MainWindow::quit() {
-//   visa->driver->settings->close();
    QSETTINGS;
+
+//   QList<QWindow *> allQWindows
+//         = this->findChildren<QWindow *>();
 
    if (visa->isVisible()) {
       config.setValue("Visa/geometry", visa->saveGeometry());
@@ -129,6 +131,7 @@ void MainWindow::quit() {
    }
 
    this->close();
+//   delete this;
 }
 
 /* ======================================================================== */
