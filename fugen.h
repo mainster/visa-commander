@@ -45,9 +45,10 @@ public:
    Q_DECLARE_FLAGS(add_types, add_type)
 
    struct tuple_t {
-      double   float_ ;
-      int      int_ ;
-      uint     reg_ ;
+      double      float_ ;
+      uint32_t    reg32_ ;
+      uint16_t    reg16_ ;
+      int         int___ ;
    };
    typedef struct tuple_t tuple_t;
 
@@ -78,16 +79,16 @@ public:
        \return int
       */
       ///< --------------- convert Amplitude -------------------------------
-      int convLCD2amp(double dVamp, add_type type = FuGen::type_increment);
+      long convLCD2amp(double dVamp, add_type type = FuGen::type_increment);
 
       ///< --------------- convert frequency -------------------------------
-      int convLCD2freq(double dFreq, add_type type = FuGen::type_increment);
+      long convLCD2freq(double dFreq, add_type type = FuGen::type_increment);
 
       ///< --------------- convert Offset ----------------------------------
-      int convLCD2offs(double dVoffs, add_type type = FuGen::type_increment);
+      long convLCD2offs(double dVoffs, add_type type = FuGen::type_increment);
 
       ///< --------------- convert Duty-Cycle ------------------------------
-      int convLCD2duty(double dDuty, add_type type = FuGen::type_increment);
+      long convLCD2duty(double dDuty, add_type type = FuGen::type_increment);
 
 
       /*!
@@ -279,7 +280,8 @@ private:
     * DDS output frequency limits
     * --------------------------------------
     * Output frequency: 0.1Hz ... 5MHz
-    * 
+    * delta-f-out: DFOUT_PER_TICK = 100Hz / Tick
+    *
     */
    FOUT_MIN       =     0.1,        //< Hz
    FOUT_MAX       =     5.0e6,      //< Hz
@@ -287,19 +289,45 @@ private:
    DFOUT_PER_TICK =                 //< ~100Hz / Tick
          (FOUT_MAX-FOUT_MIN)/ FOUT_MAX_TICKS,
 
-   
-   Vout_max =   8.0,
-   Vout_min =  -8.0,
-   Vpp_max  =  10.0,
-   Vos_max  =   4.0,
-   Vos_min  =  -4.0,
-   fcDuty   = 655.35,
-   fcFreq   = (0xffffffff/60e6),         //< 2^32/fclk = 71.58....
+   /**
+    * Alternating output frequency
+    * --------------------------------------
+    * DDS_Increment (32-bit uint) @ 0x38...0x3b
+    * DDS_Increment  = 2^32/f_clk * fout
+    *                = 71.582788... * fout
+    *                = fcFreq * fout
+    */
+   FACT_FREQ   =  (0xffffffff/60e6),
+
+   /**
+    * Duty cycle for rectangular wave form
+    * --------------------------------------
+    * Duty_Cycle (16-bit uint) @ 0x34...0x35
+    * duty_ in % =>  duty_ is an element of [0,100]
+    *
+    * Duty_Cycle  =  655.35 * duty_
+    *             =  fcDuty * duty_
+    */
+   DUTY_MIN_PERC  =     0.0,
+   DUTY_MAX_PERC  =   100.0,
+   FACT_DUTY      =  655.35,
+
+   /**
+    * Signal generator offset voltage
+    * --------------------------------------
+    * Voffs = +- 4V but Vp must still stay smaler
+    * than Vpp(8V)+Voffs_max(4V)
+    */
+   VOFFS_MIN   =  -4.0,       //< V
+   VOFFS_MAX   =   4.0,       //< V
 
    V_PER_DIG         = 6.10352e-05, //< V
    V_OFFS_PER_DIG    = 0.0,         //< V
    V_AMP_MAX_FLOAT   = 12.5l,       //< V
-   V_OFFS_MAX_FLOAT  = 12.5l;       //< V
+
+   Vout_max =   8.0,
+   Vout_min =  -8.0,
+   Vpp_max  =  10.0;
 };
 
 //Q_DECLARE_METATYPE()

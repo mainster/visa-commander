@@ -168,8 +168,8 @@ void FuGen::onCyclic() {
  * 1) Normieren auf: event->delta() = +- 1 (double)
  * 2) Für jedes LCD einen "MAX_TICKS" festlegen, modifier mit berechnen
  * 3) CTRL        + WheelTick: x4
- *    CTRL+Shift  + WheelTick: x10  
- *    
+ *    CTRL+Shift  + WheelTick: x10
+ *
  *    => Bei x10 soll V_Amp-range 0.1 ... 8Vpp
  *       in 15ticks durchlaufen werden
  *    => Bei  x1 soll V_Amp-range 0.1 ... 8Vpp
@@ -187,14 +187,14 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    Qt::KeyboardModifiers mods =
          QApplication::queryKeyboardModifiers();
    
-   /** 
-    * evDelta is a element of [-1, 1]    (Wheel-down, Wheel-Up) 
-    */ 
+   /**
+    * evDelta is a element of [-1, 1]    (Wheel-down, Wheel-Up)
+    */
    short evDelta = (short) (event->delta() / DELTA_NORM);
 
-   /** 
+   /**
     * Acceleration factor could be x1, x4, x10
-    */  
+    */
    double accFact = 1.0;
    
    /**
@@ -230,7 +230,7 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
       genCfg->convLCD2freq( event->delta()/(DIV), FuGen::type_increment );
    else
       if (widName.contains( ui->lcdAmp->objectName() ))
-         genCfg->convLCD2amp( (double) evDelta * accFact * DVAMP_PER_TICK, 
+         genCfg->convLCD2amp( (double) evDelta * accFact * DVAMP_PER_TICK,
                               FuGen::type_increment );
       else
          if (widName.contains( ui->lcdOffs->objectName() ))
@@ -267,7 +267,8 @@ void FuGen::fillTxReg() {
  \return int   Integer representation of VAmp, this value also updates the
                fugen config structure.
 */
-int FuGen::genCfg_t::convLCD2amp(double dVamp, FuGen::add_type type) {
+///< --------------- convert Amplitude -------------------------------
+long FuGen::genCfg_t::convLCD2amp(double dVamp, FuGen::add_type type) {
    FuGens::amp_rngs rng = FuGen::calcAmp_rng(); // 0x03
 
    if (type == FuGen::type_increment)
@@ -275,95 +276,151 @@ int FuGen::genCfg_t::convLCD2amp(double dVamp, FuGen::add_type type) {
    else Amp.float_ = dVamp;
 
    /**
+    * Setpoint limit, Vpp range [0, 8Vpp]
+    */
+   (Amp.float_ > VAMP_MAX)
+         ?  Amp.float_ = VAMP_MAX
+         :  Amp.float_ = Amp.float_ ;
+
+   (Amp.float_ < 0)
+         ?  Amp.float_ = 0
+         :  Amp.float_ = Amp.float_ ;
+
+   /**
     * The Register Amplitude(0x30, 0x31) determines the voltage reference on t
     * he DAC and has to be calculated with this formula:
     * Programmers Manual, page 56
     *
     * H(31) | DDS-Generator | Amplitude 3.5Vrms | ca. 0x3e3f | rel | 10
-    * Hc(31): 9.63000                                            
+    * Hc(31): 9.63000
     * Kx(0x03) = 1
-    * 
+    *
     * Amp.int_(0.1Vpp) = 4096/9.63 * 0.1V   =    43dec
     * Amp.int_(8.0Vpp) = 4096/9.63 * 8.0V   =  3403dec
-    * 
+    *
     */
-   Amp.int_ = (uint16_t)((double) 4095 * Amp.float_/
-                         ((double)vr->H[31] * Kx(rng)));
+   Amp.reg16_ = (uint16_t)((double) 4095 * Amp.float_/
+                           ((double)vr->H[31] * Kx(rng)));
 
    /**
     * Range check according to page 56, equ. (12.3)
     */
-   if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
-      Amp.int_ = -1;
-
-   qDebug().noquote() << "Amp.float_" << Amp.float_
-                      << " Amp.int_" << Amp.int_;
-   return Amp.int_;
-}
-/**
- * ^^^^^^^^^^ TEST ME ^^^^^^^^^^
- */
-
-///< --------------- convert Frequency -------------------------------
-int FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
-   FuGens::amp_rngs rng = calcAmp_rng();
-
-   if (type == FuGen::type_increment)
-      Freq.float_  += dFreq;
-   else Freq.float_ = dFreq;
-
-   if (Freq.float_ < 5.0e6)
-      Freq.int_   = (uint16_t) ((double)fcFreq * dFreq);
-   else {
-      Freq.int_   = 0xffff;
-      Freq.float_ = 5.0e6;
+   if (! ((Amp.reg16_ > 0) && (Amp.reg16_ < LIM_12BIT_UINT))) {
+      Amp.reg16_ = 0;
+      Q_INFO << tr("Range check failed [0...LIM_12BIT_UINT]");
+      return -1;
    }
 
-   /** Range check according to page 56, equ. (12.3)
-         if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
-            Amp.int_ = -1;*/
+   qDebug().noquote() << "Amp.float_" << Amp.float_
+                      << " Amp.reg16_" << Amp.reg16_;
 
-   return 0;
+   return (long) Amp.reg16_;
 }
 
-///< --------------- convert Offset -------------------------------
-int FuGen::genCfg_t::convLCD2offs(double dVoffs, FuGen::add_type type) {
+///< --------------- convert Frequency -------------------------------
+long FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
+
+   if (type == FuGen::type_increment)
+      Freq.float_ += dFreq;
+   else Freq.float_ = dFreq;
+
+   /**
+    * Range check according to page 54
+    */
+   (Freq.float_ > FOUT_MAX)
+         ?  Freq.float_ = FOUT_MAX
+         :  Freq.float_ = Freq.float_ ;
+
+   (Freq.float_ < 0)
+         ?  Freq.float_ = 0
+         :  Freq.float_ = Freq.float_ ;
+
+   /**
+    * Calc integer representation
+    *
+    * REMINDER:
+    * Freq represents a full scaled 32-bit value, be careful
+    * with signed datatypes
+    */
+   Freq.reg32_ = (uint32_t) ((double)FACT_FREQ * Freq.float_);
+
+   qDebug().noquote() << "Freq.float_" << Freq.float_
+                      << " Freq.reg32_" << Freq.reg32_;
+   return (long) Freq.reg32_;
+}
+
+///< --------------- convert Offset ----------------------------------
+long FuGen::genCfg_t::convLCD2offs(double dVoffs, FuGen::add_type type) {
    FuGens::amp_rngs rng = calcAmp_rng();
 
    if (type == FuGen::type_increment)
       Offs.float_  += dVoffs;
    else Offs.float_ = dVoffs;
 
-   Offs.int_ = (uint16_t) (2047*((double) 1.0 + vr->H[32] *
-                                      Offs.float_ / Kx(rng)) + vr->H[30]);
+   /**
+    * Range check according to page 56, 12.4
+    */
+   (Offs.float_ > VOFFS_MAX)
+         ?  Offs.float_ = VOFFS_MAX
+         :  Offs.float_ = Offs.float_ ;
 
-   /** Range check according to page 56, equ. (12.4) */
-   if (! ((Offs.int_ > 410) && (Offs.int_ < 3685)))
-      Offs.int_ = -1;
+   (Offs.float_ < VOFFS_MIN)
+         ?  Offs.float_ = VOFFS_MIN
+         :  Offs.float_ = Offs.float_ ;
 
-   return 0;
+   /**
+    * Calc integer representation
+    */
+   Offs.reg16_ = (uint16_t) (2047*((double) 1.0 + vr->H[32] *
+                             Offs.float_ / Kx(rng)) + vr->H[30]);
+
+   /**
+    * Range check according to page 56, equ. (12.4)
+    * Not important yet since value of Kx is set fixed to 1
+    */
+   if (! ((Offs.reg16_ > 410) && (Offs.reg16_ < 3685))) {
+      Offs.reg16_ = 0;
+      Q_INFO << tr("Range check failed ]410...3685[ ");
+      return -1;
+   }
+
+   qDebug().noquote() << "Offs.float_" << Offs.float_
+                      << " Offs.reg16_" << Offs.reg16_;
+
+   return (long) Offs.reg16_;
 }
 
-///< --------------- convert Duty -------------------------------
-int FuGen::genCfg_t::convLCD2duty(double dDuty, FuGen::add_type type) {
-   FuGens::amp_rngs rng = calcAmp_rng();
+///< --------------- convert Duty ------------------------------------
+long FuGen::genCfg_t::convLCD2duty(double dDuty, FuGen::add_type type) {
 
    if (type == FuGen::type_increment)
       Duty.float_  += dDuty;
    else Duty.float_ = dDuty;
 
-   if (dDuty < 100.0)
-      Duty.int_   = (uint16_t) ((double)fcDuty * dDuty);
-   else
-      Duty.int_   = 0xffff;
+   /**
+    * Range check duty cycle value, 0 ... 100 [%]
+    */
+   (Duty.float_ > DUTY_MAX_PERC0)
+         ?  Duty.float_ = DUTY_MAX_PERC
+         :  Duty.float_ = Duty.float_ ;
 
-   /** Range check according to page 56, equ. (12.3)
-         if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
-            Amp.int_ = -1;*/
+   (Duty.float_ < DUTY_MIN_PERC)
+         ?  Duty.float_ = DUTY_MIN_PERC
+         :  Duty.float_ = Duty.float_ ;
 
-   return 0;
+   /**
+    * Calc integer representation
+    */
+   Duty.reg16_ = (uint16_t) ((double) FACT_DUTY * Duty.float_);
+
+   if (Duty.float_ == DUTY_MAX_PERC)
+      Duty.reg16_ = 0xffff;
+
+   qDebug().noquote() << "Duty.float_" << Duty.float_
+                      << " Duty.reg16_" << Duty.reg16_;
+
+   return (long) Duty.reg16_;
 }
-
 
 
 #define QFOLDINGSTART {
