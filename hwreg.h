@@ -1,18 +1,11 @@
-
 #ifndef HWREG_H
 #define HWREG_H
-
-/** don't do it */
-// #include "globals.h"
-//*/
-//#include "utype.h"
 
 #include <stdint.h>
 #include <QString>
 #include <QObject>
 #include <QDebug>
 
-#define Q(string) QString(string).toStdString().c_str()
 
 // ------------------------------------------------------------------------
 namespace Qt {
@@ -90,8 +83,6 @@ enum amp_rng {
    rng_1     = 0x03
 };
 Q_DECLARE_FLAGS(amp_rngs, amp_rng)
-
-
 }
 // ------------------------------------------------------------------------
 

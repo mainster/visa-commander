@@ -6,16 +6,19 @@
 #include <typeinfo>
 
 #include "ui_fugen.h"
-#include "mqtimer.h"
-#include "globals.h"
-#include "visareg.h"
 #include "fugen.h"
+
 #include "globals.h"
+#include "ioedit.h"
+#include "visareg.h"
+#include "visa.h"
+
+class FuGen;
+class VisaReg;
 
 #define WHEELEVENT_OBJECT_NAME 1
 
-FuGen    *FuGen::inst   = 0;
-VisaReg  *FuGen::vr     = 0;
+FuGen    *FuGen::inst = 0;
 
 /* ======================================================================== */
 /*                     class constructor                                    */
@@ -219,13 +222,13 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    //   V_PER_DIG = ui->lineEdit->text().toInt();
 
    if (widName.contains( ui->lcdFreq->objectName() ))
-      genCfg->FreqSet( event->delta()/(DIV) );
+      genCfg->convLCD2freq( event->delta()/(DIV), FuGen::type_increment );
    else
       if (widName.contains( ui->lcdAmp->objectName() ))
-         genCfg->AmpSet( event->delta()/(DIV));
+         genCfg->convLCD2amp( event->delta()/(DIV), FuGen::type_increment );
       else
          if (widName.contains( ui->lcdOffs->objectName() ))
-            genCfg->OffsSet( event->delta()/(DIV));
+            genCfg->convLCD2offs( event->delta()/(DIV), FuGen::type_increment );
          else {
             Q_INFO << tr("Wheel event can't be mapped to an lcd widget");
             ioedit->putInfoLine(

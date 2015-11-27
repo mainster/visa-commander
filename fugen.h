@@ -8,15 +8,18 @@
 #include <qmath.h>
 #include <stdint.h>
 
-#include "visareg.h"
-#include "visa.h"
 #include "hwreg.h"
-#include "mqtimer.h"
-
+#include "globals.h"
 
 namespace Ui {
 class FuGen;
 }
+
+class FuGen;
+class VisaReg;
+class Visa;
+class IOEdit;
+
 
 /*!
  \brief Class FuGen provides a configuration and setpoint interface to the DDS
@@ -31,6 +34,7 @@ class FuGen;
       * DC-Offset             +-4V max/min
 */
 class FuGen : public QDockWidget {
+
    Q_OBJECT
 
 public:
@@ -40,17 +44,20 @@ public:
    };
    Q_DECLARE_FLAGS(add_types, add_type)
 
-   typedef struct {
+   explicit FuGen(QWidget *parent = 0);
+   ~FuGen();
+
+   struct tuple_t {
       double   float_ ;
       int      int_ ;
       uint     reg_ ;
-   } tuple_t;
+   };
+   typedef struct tuple_t tuple_t;
 
    /* ======================================================================= */
    /*                  Fu-Gen config structure                                */
    /* ======================================================================= */
-
-   typedef struct {
+   struct genCfg_t {
       tuple_t Freq;
       tuple_t Amp;
       tuple_t Offs;
@@ -58,7 +65,6 @@ public:
       FuGens::wave_forms   waveForm;
       FuGens::noise_typs   noiseModel;
       FuGens::amp_rngs     ampRng;
-
 
       // TODO: Calculate real calibrated scale factors
 
@@ -77,14 +83,14 @@ public:
       ///< --------------- convert Amplitude -------------------------------
       ///< -----------------------------------------------------------------
       int convLCD2amp(double dAmp, add_type type = FuGen::type_increment) {
-         FuGens::amp_rngs rng = FuGens::calcAmp_rng();
+         FuGens::amp_rngs rng = FuGen::calcAmp_rng();
 
          if (type == FuGen::type_increment)
             Amp.float_  += dAmp;
          else Amp.float_ = dAmp;
 
-         Amp.int_    = (uint16_t)((double) 4095 *
-                               dAmp/((double)vr->H[31] * Kx( rng )));
+//         Amp.int_    = (uint16_t)((double) 4095 *
+//                               dAmp/((double)vr->H[31] * Kx( rng )));
 
          /** Range check according to page 56, equ. (12.3) */
          if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
@@ -101,8 +107,8 @@ public:
             Offs.float_  += dOffs;
          else Offs.float_ = dOffs;
 
-         Offs.int_   = (uint16_t) (2047 * ((double) 1.0 + vr->H[32] *
-                                   Offs.float_/Kx( rng )) + vr->H[30]);
+//         Offs.int_   = (uint16_t) (2047 * ((double) 1.0 + vrs->H[32] *
+//                                   Offs.float_/Kx( rng )) + vrs->H[30]);
 
          /** Range check according to page 56, equ. (12.4) */
          if (! ((Offs.int_ > 410) && (Offs.int_ < 3685)))
@@ -139,8 +145,8 @@ public:
             Freq.float_  += dFreq;
          else Freq.float_ = dFreq;
 
-         if (dFrq < 5.0e6)
-            Freq.int_   = (uint16_t) ((double)fcFrq * dFreq);
+         if (dFreq < 5.0e6)
+            Freq.int_   = (uint16_t) ((double)fcFreq * dFreq);
          else {
             Freq.int_   = 0xffff;
             Freq.float_ = 5e6;
@@ -269,11 +275,13 @@ public:
 //         return QString("%1").arg(ret.int_);
 //      }
 
-   }  genCfg_t;
-
-
+   };
+   typedef struct genCfg_t genCfg_t;
    genCfg_t *genCfg;
-   explicit FuGen(QWidget *parent = 0);
+
+   void initUiElements();
+   uint16_t calcAmplRegVal(double physAmp);
+   uint16_t calcOffsRegVal(double physOffs);
    static FuGen *getInstance() {
       if(inst == 0)
          inst = new FuGen();
@@ -282,32 +290,27 @@ public:
    static FuGen *getObjectPtr() {
       return inst;
    }
-   ~FuGen();
+   static double Kx(FuGens::amp_rngs fRng);
 
-   void initUiElements();
-   FuGens::amp_rngs calcAmp_rng();
-   double Kx(FuGens::amp_rngs fRng);
-   uint16_t calcAmplRegVal(double physAmp);
-   uint16_t calcOffsRegVal(double physOffs);
 public slots:
    void onCyclic();
    void wheelEvent(QWheelEvent *event);
    void fillTxReg();
-
    void onBtnOnOffClicked();
    void onConfigChangeTriggered(int idx = -1);
    void loadSineIntoFPGA();
+   static FuGens::amp_rngs calcAmp_rng();
+
 private:
-   Ui::FuGen *ui;
-   static FuGen *inst;
+   Ui::FuGen   *ui;
    QTimer      *timCycl;
-   int         mouseWheelCnt;
-   static VisaReg     *vr;
+   VisaReg     *vr;
    IOEdit      *ioedit ;
    Visa        *visa;
+   int         mouseWheelCnt;
 
+   static FuGen *inst;
    static const QByteArray sinTbl;
-
    static const double
    INTERVAL_LCD      = 0.1,         //< s
    AMP_MIN           = 0.05,        //< Vpp

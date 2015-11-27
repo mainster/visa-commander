@@ -1,26 +1,19 @@
-
-#define QFOLDINGSTART {
-#include "visareg.h"
-#include "globals.h"
-#include "driver.h"
-#include "hwreg.h"
-#include "visa.h"
-#include "calc.h"
-
+#include <QtCore>
 #include <QDebug>
-#include <sstream>
-#include <stdint.h>
-#include <algorithm>
-#include <QString>
-#include <QDataStream>
-#include <QInputDialog>
-#include <QTextBlock>
-#define QFOLDINGEND }
+
+#include "visareg.h"
+#include "visa.h"
+#include "ioedit.h"
+#include "utype.h"
+#include "hwreg.h"
+#include "driver.h"
+#include "calc.h"
+#include "dvm.h"
+#include "globals.h"
+
+class VisaReg;
+
 #define STREAM_HUMAN_READABLE
-
-const QByteArray& STARTSEQ = QByteArray("00 00 00 46 70 67 00");
-
-class Calc;
 
 VisaReg* VisaReg::inst = 0;
 
@@ -54,7 +47,8 @@ VisaReg::VisaReg(QObject *parent) :
    regDvmRngInp  = new Reg_8a8b();
    regLedVlogic  = new Reg_bebf();
 
-   calc = Calc::getInstance(this);
+//   calc = Calc::getInstance(this);
+   calc = Calc::getInstance();
 
    connect( driver,        SIGNAL(reqRespKillTimeout()),
             timReqTimeout, SLOT(stop()));
@@ -64,6 +58,16 @@ VisaReg::VisaReg(QObject *parent) :
 VisaReg::~VisaReg() {
 
 }
+QVector<double> VisaReg::getH()
+{
+    return H;
+}
+
+void VisaReg::setH(const QVector<double> &value)
+{
+    H = value;
+}
+
 
 /* ======================================================================== */
 /*                     FPGA communication protocols                         */

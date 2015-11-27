@@ -1,10 +1,3 @@
-
-#include "calc.h"
-#include "hwreg.h"
-#include "globals.h"
-#include "filebackup.h"
-#include "utype.h"
-
 #include <QDebug>
 #include <sstream>
 #include <stdint.h>
@@ -14,32 +7,25 @@
 #include <QInputDialog>
 #include <QFile>
 
-namespace name {
-class HwReg;
-class VisaReg;
-class FileBackup;
-}
+#include "visareg.h"
+#include "visa.h"
+#include "calc.h"
+#include "ioedit.h"
+#include "filebackup.h"
 
-class FileBackup;
-class HwReg;
+class Calc;
 
 Calc* Calc::inst = 0;
 
 /* ======================================================================== */
 /*                     class constructor                                    */
 /* ======================================================================== */
-Calc::Calc(VisaReg *parent) :
+Calc::Calc(QWidget *parent) :
    QObject(parent) {
 
-   if (parent != 0)
-      visareg = parent;
-
+   visareg = VisaReg::getInstance();
    ioedit   = IOEdit::getInstance();
    eepromRx = new QVector<uint16_t>(100);
-
-
-   //   german = QLocale::German, QLocale::Germany;
-   //   loadHardwareDat(DEFAULT_DAT_FILEORIG);
 }
 
 Calc::~Calc() {
@@ -285,7 +271,6 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
       visareg->H.append( hwCal[j].H );
    return 0;
 }
-
 int Calc::loadHardwareDat(QString path) {
    QStringList lst; QByteArray line;
    int i;
@@ -330,7 +315,6 @@ int Calc::loadHardwareDat(QString path) {
 
    return 0;
 }
-
 void Calc::loadHardwareDat() {
    if (loadHardwareDat(DEFAULT_DAT_FILE) < 0)
       qDebug() << "load hardware_dat failed!";
@@ -339,7 +323,6 @@ void Calc::loadHardwareDat() {
       visa->gs.hw_xxx_dat_loaded = true;
    }
 }
-
 /**
  * Calculate physical values for 0x10..0x27
  */

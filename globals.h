@@ -1,25 +1,24 @@
-
 #ifndef GLOBALS_H
 #define GLOBALS_H
 
 #include <QByteArray>
+#include <QString>
+#include <QSettings>
+#include <QTimer>
+#include <QTime>
+
 #include <stdint.h>
 #include <stdio.h>
 #include <iostream>
 #include <cstdlib>
-#include <QSlider>
 
-#include "driver.h"
-#include "ioedit.h"
-#include "hwreg.h"
-#include <QSettings>
-#include "utype.h"
 
 #define LOAD_HARDWARE_DAT_FROM_FILESYSTEM
 //#undef LOAD_HARDWARE_DAT_FROM_FILESYSTEM
 
-#define CONFIG_PATH     "/home/mainster/.config/visa-commander_v4-6/config"
+#define CONFIG_PATH     "/home/mainster/.config/visa-commander_v4-71/config"
 
+#define TMP_PATH        "/tmp/"
 /** Heartbeat timer periode - periodically req default register information */
 #define T_HEARTBEAT     250e-3
 

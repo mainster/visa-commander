@@ -1,12 +1,5 @@
-﻿
-#ifndef CALC_H
+﻿#ifndef CALC_H
 #define CALC_H
-
-#include "stdint.h"
-#include "visa.h"
-#include "visareg.h"
-#include "ioedit.h"
-#include "filebackup.h"
 
 #include <QObject>
 #include <QVector>
@@ -14,13 +7,7 @@
 #include <QDebug>
 #include <QFlag>
 #include <QFlags>
-
-class Visa;
-class VisaReg;
-class Calc;
-class IOEdit;
-
-
+#include <stdint.h>
 
 
 class Calc : public QObject {
@@ -50,7 +37,7 @@ public:
    } hw_calib_t;
    Q_DECLARE_FLAGS(tolTypes, tolType)
 
-   static Calc *getInstance(VisaReg *visaregPtr = 0) {
+   static Calc *getInstance(QWidget *visaregPtr = 0) {
       if(inst == 0)
          inst = new Calc(visaregPtr);
       return inst;
@@ -60,7 +47,7 @@ public:
       return inst;
    }
 
-   explicit Calc(VisaReg *parent = 0/*, VisaReg *otherparent = 0*/);
+   explicit Calc(QWidget *parent = 0/*, VisaReg *otherparent = 0*/);
 
    ~Calc();
 
@@ -90,14 +77,14 @@ public slots:
    int physCalcADC();
 
 protected:
-
+   friend class VisaReg;
 private slots:
 
 private:
-   Visa        * visa;  
-   VisaReg     * visareg;  
-   IOEdit      * ioedit;  
    static Calc * inst;  
+   class Visa        * visa;
+   class VisaReg     * visareg;
+   class IOEdit      * ioedit;
 
 //   QLocale     german;
 };

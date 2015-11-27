@@ -1,22 +1,19 @@
-﻿
-#include "ioedit.h"
-
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "visa.h"
-#include "globals.h"
-#include "QScrollBar"
-
-#include <qglobal.h>
-#include <QtCore/QtGlobal>
-#include <QMainWindow>
-#include <QMainWindow>
-#include <QDebug>
-#include <QPlainTextEdit>
-#include <QFont>
-#include <QPalette>
-#include <QColor>
+﻿#include <QApplication>
+#include <QScrollBar>
 #include <QColorDialog>
+#include <QGridLayout>
+#include <QMenu>
+
+#include "ioedit.h"
+#include "driver.h"
+#include "visa.h"
+
+
+/**
+ * Forward declaration of class IOEdit is ok since this is the implementation
+ * file of IOEdit
+ */
+class IOEdit;
 
 #define SETFONT
 #undef SETFONT
@@ -713,7 +710,6 @@ QStringList IOEdit::getCurrentTextBlocks() {
 
 /** RINGBUFFER */
 
-#define MIN_FRAMESIZE 50        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 /*!
  \brief

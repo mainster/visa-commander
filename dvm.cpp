@@ -1,21 +1,20 @@
-
-#include "dvm.h"
-#include "ui_dvm.h"
-#include "visareg.h"
-#include "QObject"
-#include "globals.h"
-#include "hwreg.h"
-#include "calc.h"
-
 #include <QFlag>
 #include <QFlags>
 
+#include "dvm.h"
+#include "ui_dvm.h"
 
-class HwReg;
-class VisaReg;
-class Visa;
-class Calc;
+#include "visa.h"
+#include "visareg.h"
+#include "calc.h"
+#include "driver.h"
+#include "globals.h"
 
+/**
+ * Forward declaration of class DVM is ok since this is the implementation file
+ * of DVM
+ */
+class Dvm;
 
 Dvm* Dvm::instDc = 0; 
 Dvm* Dvm::instAcDc = 0; 

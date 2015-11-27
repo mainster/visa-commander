@@ -1,4 +1,3 @@
-
 #ifndef VISAREG_H
 #define VISAREG_H
 
@@ -9,20 +8,14 @@
 #include <QFlags>
 
 #include "hwreg.h"
-#include "visa.h"
 #include "globals.h"
 #include "visareg.h"
-#include "dvm.h"
-#include "calc.h"
-#include "driver.h"
-
 
 class Visa;
 class Driver;
 class IOEdit;
-class VisaReg;
 class Calc;
-class HwReg;
+
 
 class VisaReg : public QObject {
 
@@ -424,6 +417,9 @@ public:
    */
    } trxQue_t;
 
+   static QVector<double> getH();
+   static void setH(const QVector<double> &value);
+
 public slots:
    void init_HwRoImg(bool initVal = true);
    void init_HwRwImg(bool initVal = true);
@@ -464,7 +460,7 @@ signals:
 
 private slots:
 
-   friend class Calc;
+//   friend class Calc;
 
 protected:
 

@@ -4,16 +4,17 @@
 #include <QInputDialog>
 #include <QDebug>
 
-#include "mqtimer.h"
-#include "globals.h"
 #include "power.h"
 #include "ui_power.h"
+
+#include "mqtimer.h"
+#include "globals.h"
+#include "ioedit.h"
 #include "visareg.h"
+#include "visa.h"
 
 #define WHEELEVENT_OBJECT_NAME
 #undef WHEELEVENT_OBJECT_NAME
-
-class VisaReg;
 
 /* ======================================================================== */
 /*                     class constructor                                    */
@@ -75,7 +76,7 @@ void Power::onBtnEnPosClicked() {
 void Power::onBtnLockClicked() {
 }
 void Power::onCyclic() {
-/*   ui->lcdVoltPos->display( supply->Vplus.int_.set);
+   /*   ui->lcdVoltPos->display( supply->Vplus.int_.set);
    ui->lcdAmpPos->display ( supply->Iplus.int_.set);
    ui->lcdVoltNeg->display( supply->Vmin.int_.set);
    ui->lcdAmpNeg->display ( supply->Imin.int_.set);
@@ -148,7 +149,7 @@ void Power::wheelEvent ( QWheelEvent * event ) {
 
    ioedit->putInfoLine( QString::number( event->delta()/(DIV) ));
 
-//   V_PER_DIG = ui->lineEdit->text().toInt();
+   //   V_PER_DIG = ui->lineEdit->text().toInt();
 
    if (widName.contains( ui->lcdVoltPos->objectName() ))
       supply->VplusSet( event->delta()/(DIV) );

@@ -1,12 +1,12 @@
 #ifndef MQTIMER_H
 #define MQTIMER_H
-#include <QDebug>
 #include <QtCore/QDebug>
 #include <QTimer>
+#include <QDebug>
 
 #define LOCK_ON_FOCUS_LOST_DELAY 5000
 
-typedef struct {
+struct MQTimer_t{
    QTimer *tim;            ///< QTimer object
    int beatsCtr;           ///< Divider / counter
    static int autoReload;  ///< Value for autoreloading the divider/ctr
@@ -54,7 +54,8 @@ typedef struct {
    int getLockOnFocusLostDelay() {
       return (int) LOCK_ON_FOCUS_LOST_DELAY;
    }
+};
 
-} MQTimer_t;
+
 
 #endif // MQTIMER_H

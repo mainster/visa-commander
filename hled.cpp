@@ -1,11 +1,6 @@
-
 #include <QtGui>
 #include "hled.h"
 
-/*!
- \brief
-
-*/
 struct HLed::Private
 {
 public:
@@ -22,40 +17,21 @@ public:
     bool isOn; 
 };
 
-/*!
- \brief
-
- \param parent
-*/
 HLed::HLed(QWidget *parent)
     :QWidget(parent), m_d(new Private)
 {
 }
 
-/*!
- \brief
-
-*/
 HLed::~HLed()
 {
     delete m_d;
 }
 
-/*!
- \brief
-
- \return QColor
-*/
 QColor HLed::color() const
 {
     return m_d->color;
 }
 
-/*!
- \brief
-
- \param color
-*/
 void HLed::setColor(const QColor &color)
 {
     if (m_d->color == color)
@@ -63,62 +39,33 @@ void HLed::setColor(const QColor &color)
     update();
 }
 
-/*!
- \brief
-
- \return QSize
-*/
 QSize HLed::sizeHint() const
 {
     return QSize(20, 20);
 }
 
-/*!
- \brief
-
- \return QSize
-*/
 QSize HLed::minimumSizeHint() const
 {
     return QSize(16, 16);
 }
 
-/*!
- \brief
-
-*/
 void HLed::toggle()
 {
     m_d->isOn = !m_d->isOn;
     update();
 }
 
-/*!
- \brief
-
- \param on
-*/
 void HLed::turnOn(bool on)
 {
     m_d->isOn = on;
     update();
 }
 
-/*!
- \brief
-
- \param off
-*/
 void HLed::turnOff(bool off)
 {
     turnOn(!off);
 }
 
-/*!
- \brief
-
- \param
-*/
 void HLed::paintEvent(QPaintEvent * /*event*/)
 {
     int width = ledWidth();
@@ -181,11 +128,6 @@ void HLed::paintEvent(QPaintEvent * /*event*/)
     }
 }
 
-/*!
- \brief
-
- \return int
-*/
 int HLed::ledWidth() const
 {
     int width = qMin(this->width(), this->height());

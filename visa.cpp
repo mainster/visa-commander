@@ -1,15 +1,3 @@
-
-#include "visa.h"
-#include "ui_visa.h"
-#include "mainwindow.h"
-#include "globals.h"
-#include "visareg.h"
-#include "ioedit.h"
-#include "hwreg.h"
-#include "sleeper.h"
-#include "calc.h"
-#include "power.h"
-
 #include <QSettings>
 #include <QDebug>
 #include <QtCore/QDebug>
@@ -17,15 +5,26 @@
 #include <QMessageBox>
 #include <QInputDialog>
 
+#include "visa.h"
+#include "ui_visa.h"
+
+#include "driver.h"
+#include "ioedit.h"
+#include "globals.h"
+#include "visareg.h"
+#include "register.h"
+#include "calc.h"
+#include "dvm.h"
+#include "filebackup.h"
+#include "power.h"
+#include "fugen.h"
+
 #define MAX_CONSOLE_CHARS  8000
 #define hardware_xxx_dat_rew QString("/opt/Visatronic/visascope-3.1/share/" \
    "hardware_values/rewSort_hardware_137000.dat")
 #define hardware_xxx_dat QString("/opt/Visatronic/visascope-3.1/share/" \
    "hardware_values/hardware_137000.dat")
 
-
-//class Power;
-//#define TIMESTAMP_CLASS_1
 
 /**
  * Initialize structs that holds visa scope sequences,
@@ -70,9 +69,6 @@ Visa::infoFromVisascope Visa::visaInfo = {
 
 Visa* Visa::inst = 0;
 Reg_bebf* Visa::regLedVlogic = 0;
-
-
-//#define NEW_ERA_CTR 1
 
 /* ======================================================================== */
 /*                     class constructor                                    */

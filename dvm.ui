@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowIcon">
-   <iconset resource="vicom_v4-7_helixed.qrc">
+   <iconset resource="visa-commander_v4-71.qrc">
     <normaloff>:/images/dvm.png</normaloff>:/images/dvm.png</iconset>
   </property>
   <property name="windowTitle">
@@ -837,7 +837,7 @@ border-radius: 4px;
              </size>
             </property>
             <property name="icon">
-             <iconset resource="vicom_v4-7_helixed.qrc">
+             <iconset resource="visa-commander_v4-71.qrc">
               <normaloff>:/images/buchserot.ico</normaloff>:/images/buchserot.ico</iconset>
             </property>
             <property name="iconSize">
@@ -866,7 +866,7 @@ border-radius: 4px;
              </size>
             </property>
             <property name="icon">
-             <iconset resource="vicom_v4-7_helixed.qrc">
+             <iconset resource="visa-commander_v4-71.qrc">
               <normaloff>:/images/buchsen_schwarz.ico</normaloff>:/images/buchsen_schwarz.ico</iconset>
             </property>
             <property name="iconSize">
@@ -917,7 +917,7 @@ border-radius: 4px;
              </size>
             </property>
             <property name="icon">
-             <iconset resource="vicom_v4-7_helixed.qrc">
+             <iconset resource="visa-commander_v4-71.qrc">
               <normaloff>:/images/buchserot.ico</normaloff>:/images/buchserot.ico</iconset>
             </property>
             <property name="iconSize">
@@ -1125,7 +1125,7 @@ border-radius: 4px;
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="vicom_v4-7_helixed.qrc"/>
+  <include location="visa-commander_v4-71.qrc"/>
  </resources>
  <connections/>
 </ui>

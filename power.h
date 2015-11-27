@@ -4,35 +4,23 @@
 #include <QWidget>
 #include <QTimer>
 #include <QTime>
-#include "visareg.h"
-#include "visa.h"
-#include "hwreg.h"
+
 #include "mqtimer.h"
-
-#define INTERVAL_LCD    100e-3
-
-//const long Power::V_PER_DIG = 0.0030940594059405;
-//const long Power::supply_t::A_PER_DIG = 0.0002442002442002;
-
-
-
-
 
 namespace Ui {
 class Power;
 }
 
 class VisaReg;
+class IOEdit;
 class Visa;
-class HwReg;
 
-int MQTimer_t::autoReload = 0;
+//const long Power::V_PER_DIG = 0.0030940594059405;
+//const long Power::supply_t::A_PER_DIG = 0.0002442002442002;
 
 class Power : public QWidget {
 
    Q_OBJECT
-
-
 
 public:
 
@@ -67,7 +55,6 @@ public:
       bool LimMin;
 
       void VplusSet( int val, add_type type = Power::type_increment) {
-
          if (type == Power::type_increment)
             Vplus.int_.set += (int) val;
          else
@@ -196,6 +183,9 @@ protected:
 
 private:
    static const double
+   INTERVAL_LCD   = 100e-3;
+
+   static const double
    V_PER_DIG      = 0.00310136,
    A_PER_DIG      = 6.10352e-05,
    V_MAX_FLOAT    = 12.5,
@@ -218,7 +208,6 @@ private:
    Visa        *visa;
    MQTimer_t   *autoLock, *focGuard;
    QStringList focusOkObj;
-   //      supply;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Power::add_types)

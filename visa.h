@@ -1,52 +1,35 @@
 #ifndef VISA_H
 #define VISA_H
 
-//#include "console.h"
-#include "mainwindow.h"
-#include "visa.h"
-#include "visareg.h"
-#include "driver.h"
-#include "register.h"
-#include "globals.h"
-#include "ioedit.h"
-#include "dvm.h"
-#include "mqtimer.h"
-#include "fugen.h"
-
-#include <QSlider>
 #include <QMainWindow>
-#include <QSignalMapper>
 #include <QStringListModel>
-#include <QFile>
+#include <QTextCharFormat>
+
+#include "globals.h"
+#include "portdialog.h"
+#include "mqtimer.h"
+
+namespace Ui {
+class Visa;
+}
+
+class VisaReg;
+class Register;
+class IOEdit;
+class FuGen;
+class Calc;
+class Power;
+class Reg_bebf;
+
 
 /** Time division factor for some debug prints */
 #define HEARTBEAT_DIVIDER  int(1000 / 250)
 
-namespace Ui {
-class Visa;
-class Driver;
-}
-
-class VisaReg;
-class Dvm;
-class Calc;
-class Power;
-class FuGen;
-
 /** Default format for line edit le8a8b */
 //Qt::formateds Visa::le8a8bForm = Qt::form_hex;
 
-/**
- * @brief The CFG_LED enum
- * Enum for config selection of the Duo-LED
- */
-enum CFG_LED {
-   MDB_accessedDevice,
-   MDB_leftDevice
-};
+class Visa : public QMainWindow {
 
-class Visa : public QMainWindow
-{
    Q_OBJECT
 
 #define QFOLDINGSTART {
@@ -133,6 +116,15 @@ class Visa : public QMainWindow
 #define QFOLDINGEND }
 
 public:
+   /**
+    * @brief The CFG_LED enum
+    * Enum for config selection of the Duo-LED
+    */
+   enum CFG_LED {
+      MDB_accessedDevice,
+      MDB_leftDevice
+   };
+
    enum formated {
       form_dec = 10,
       form_hex = 16,
@@ -256,6 +248,7 @@ public slots:
    bool getUiPeriodicReqIsChecked();
    void setUiPeriodicReqChecked(bool b);
    void onActFuGenTriggered(bool onoff);
+
 protected:
    void initActionsConnections();
 
@@ -276,10 +269,10 @@ private:
    QString  txStr;
 
    Register *regFrm;
-   Driver   *driver;
+   class Driver   *driver;
    IOEdit   *ioedit;
    VisaReg  *visareg;
-   Dvm      *dvmDc, *dvmAcDc;
+   class Dvm      *dvmDc, *dvmAcDc;
    FuGen    *fugen;
    Calc     *calc;
    Power    *pwr;

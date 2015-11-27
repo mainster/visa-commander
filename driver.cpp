@@ -1,21 +1,17 @@
-
-#include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "portdialog.h"
-#include "visa.h"
-#include "globals.h"
-#include "driver.h"
-#include "sleeper.h"
-
 #include <QtSerialPort/QSerialPort>
 #include <QMessageBox>
 #include <QSettings>
-
 #include <QMainWindow>
 #include <QObject>
 #include <QWidget>
 
-#define MIN_FRAMESIZE 30
+#include "driver.h"
+#include "portdialog.h"
+#include "visa.h"
+#include "ioedit.h"
+#include "globals.h"
+
+class Driver;
 
 Driver* Driver::instance = 0; 
 
@@ -82,22 +78,10 @@ Driver::Driver(QString eolPatt,
            SLOT(handleError(qint64)));
 
 }
-/**
- * @brief
- *
- */
-/*!
- \brief
-
-*/
 Driver::~Driver() {
    settings->close();
    closeSerialPort();
 }
-/*!
- \brief
-
-*/
 void Driver::openSerialPort() {
    PortDialog::Settings p = settings->settings();
 
@@ -120,10 +104,6 @@ void Driver::openSerialPort() {
    else
       emit criticalDriverError(serial->errorString());
 }
-/*!
- \brief
-
-*/
 void Driver::closeSerialPort() {
    Visa *visa = Visa::getObjectPtr();
 
@@ -131,13 +111,6 @@ void Driver::closeSerialPort() {
    serial->close();
    emit portDisconnected();
 }
-/*!
- \brief
-
- \param data
- \param putToConsole
- \return int
-*/
 int Driver::writeData(const QByteArray &data, bool putToConsole) {
    Q_ASSERT(data.length() > 0);
    static QString last;
@@ -169,26 +142,6 @@ int Driver::writeData(const QByteArray &data, bool putToConsole) {
 /* ======================================================================== */
 /*             Check if read request response is complete                   */
 /* ======================================================================== */
-/**
- * @brief This slot should be connected to readyRead() driver signal as soon as
- * the driver has been successfully connected to an QIODevice.
- * When a read request is sent to the visascope, simultaneously a specific,
- * response processing slot should be connected to the readyRead() signal.
- * After processing, this specific slot becomes disconnected.
- * Due to the fact, that the scope never sends data without beeing requested for
- * it, in normal program flow the onDefaultDataRead() slot never should be
- * called without a specific slot is also connected to the signal.
- *
- * 16-10-2015     Sniffer mode
- * In sniffer mode, this slot is accessed by default. Senity check for
- * actionModeSniffer.isChecked and receivers(..) count should be 1
- * Thus, assert this state!
- *
- */
-/*!
- \brief
-
-*/
 void Driver::onCheckRespCmpl() {
 #ifdef VERBOSITY_LVL_5
    Q_INFO << "was called";
@@ -226,22 +179,6 @@ void Driver::onCheckRespCmpl() {
 
 }
 /* ======================================================================== */
-/**
- * @brief Driver::readRxResp
- * @return  -1 if n bytes received and n > nBytesExp is true. This is an
- *          overflow scenario.
- *          0  if rx byte count matches the expected count of bytes
- *          n  count of rxbytes received at this point and n < nBytesExp
- *
- * Is called from inside onDefaultDataRead() slot.
- * If (serial->bytesAvailable() >= nByteExp) is true, this methode emits
- * reqResponseCmpl(..) signal
- */
-/*!
- \brief
-
- \return qint64
-*/
 qint64 Driver::readRxResp() {
 #ifdef VERBOSITY_LVL_5
    Q_INFO << "was called";
@@ -299,28 +236,12 @@ qint64 Driver::readRxResp() {
    }
 }
 /* ======================================================================== */
-/*!
- \brief
-
- \param error
-*/
 void Driver::handleError(QSerialPort::SerialPortError error) {
    if (error == QSerialPort::ResourceError) {
       emit criticalDriverError(serial->errorString());
       closeSerialPort();
    }
 }
-/**
- * @brief Driver::handleError This function overloads the error handler for
- * QSerialPort::SerialPortError so we can attach uder defined error "codes" to
- * a driver emitted error signal.
- * @param customError
- */
-/*!
- \brief
-
- \param customError
-*/
 void Driver::handleError(qint64 customError) {
    Q_INFO << tr("bytes received: ") << QString::number(customError);
    /** TODO: Error handling in cases of buffer overrun */
@@ -329,10 +250,6 @@ void Driver::handleError(qint64 customError) {
    QTimer::singleShot(10, Qt::CoarseTimer,
                       this, SLOT(ackResponseFrameError()));
 }
-/*!
- \brief
-
-*/
 void Driver::ackResponseFrameError() {
    /** This slot is called after a delay time if a rx request frame error
     * occured, i.e. a rx buffer underrun error.
@@ -345,10 +262,6 @@ void Driver::ackResponseFrameError() {
       serial->flush();
    }
 }
-/*!
- \brief
-
-*/
 void Driver::sniffReceived() {
 
    ioedit->onSniffFilter();
@@ -379,50 +292,21 @@ void Driver::sniffReceived() {
       }
    }
 }
-/*!
- \brief
-
-*/
 void Driver::onOpenPortDialog() {
    settings->show();
 }
-/*!
- \brief
-
- \return QIODevice::OpenMode
-*/
 QIODevice::OpenMode Driver::getOpenMode() {
    return serial->openMode();
 }
-/*!
- \brief
-
- \return PortDialog::Settings
-*/
 PortDialog::Settings Driver::getSettings() {
    return settings->settings();
 }
-/*!
- \brief
-
- \return bool
-*/
 bool Driver::isPortOpen() {
    return serial->isOpen();
 }
-/*!
- \brief
-
- \param choose
-*/
 void Driver::setHideFrameheader(bool choose) {
    rxBuff.hideFrameheader = choose;
 }
-/*!
- \brief
-
- \param choose
-*/
 void Driver::setAppendNewlineChar(bool choose) {
    rxBuff.appendNewline = choose;
 }
@@ -430,12 +314,6 @@ void Driver::setAppendNewlineChar(bool choose) {
  * has been processed. Connect this signal to the flushSyncedBuffer
  * methode to ensure a clean rxBuff.dataSync buffer on next driver call.
  */
-/*!
- \brief
-
- \param pos
- \param length
-*/
 void Driver::flushSyncedBuff(qint32 pos, qint32 length) {
    /** TODO: Implement this accessor inside rxBuff structure */
    /** TODO: Implement range check */
@@ -450,12 +328,6 @@ void Driver::flushSyncedBuff(qint32 pos, qint32 length) {
       */
       rxBuff.dataSync.clear();
 }
-/*!
- \brief
-
- \param pos
- \param length
-*/
 void Driver::flushSyncedReqBuff(qint32 pos, qint32 length) {
    /** TODO: Implement this accessor inside rxBuff structure */
    /** TODO: Implement range check */

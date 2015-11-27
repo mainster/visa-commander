@@ -1,4 +1,3 @@
-
 #ifndef FILEBACKUP_H
 #define FILEBACKUP_H
 #include <QTime>
@@ -8,14 +7,13 @@
 #include <QObject>
 #include <QDebug>
 
-#define TMP tr("/tmp/")
+#include "globals.h"
 
 namespace Qt {
 enum fileMode {
    overwrite,
 };
 Q_DECLARE_FLAGS(fileModes, fileMode)
-
 }
 
 class FileBackup : public QFile {
@@ -25,6 +23,7 @@ class FileBackup : public QFile {
 public:
    FileBackup(){;}
 
+   ~FileBackup() {;}
 
    static QString doBackup(QString pathToFile,
                            QString toTargetDir = "") {
@@ -70,7 +69,6 @@ public:
                             QFileDevice::WriteGroup);
       return toTargetFile;
    }
-
    static QString toFilesys(QStringList lines,
                             QString filename) {
 
@@ -78,7 +76,7 @@ public:
 
       /** prepend default dir if parameter "file" is not an absolute path */
       if (filename.at(0) != '/')
-         toTargetFile = TMP + filename;
+         toTargetFile = TMP_PATH + filename;
       else
          toTargetFile = filename;
 
@@ -110,7 +108,7 @@ public:
 
       QFile file(toTargetFile);
       if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
-              return "";
+         return "";
 
       QTextStream out(&file);
 
@@ -121,7 +119,6 @@ public:
 
       return toTargetFile;
    }
-
    static int msgBox(QString subject,
                      QString informativeText)  {
       QMessageBox m_msgBox;
@@ -132,7 +129,6 @@ public:
       m_msgBox.setDefaultButton(QMessageBox::Save);
       return m_msgBox.exec();
    }
-
    static int msgBox(QString subject)  {
       QMessageBox m_msgBox;
       m_msgBox.setText( subject );
@@ -141,8 +137,6 @@ public:
       m_msgBox.setDefaultButton(QMessageBox::Save);
       return m_msgBox.exec();
    }
-
-   ~FileBackup() {;}
 
 private:
 

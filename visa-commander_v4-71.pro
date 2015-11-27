@@ -31,7 +31,8 @@ SOURCES += main.cpp\
     dvm.cpp \
     calc.cpp \
     power.cpp \
-    fugen.cpp
+    fugen.cpp \
+    mqtimer.cpp
 
 HEADERS  += mainwindow.h \
     visareg.h \

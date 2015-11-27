@@ -20,7 +20,7 @@
    <string>Power</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="vicom_v4-7_helixed.qrc">
+   <iconset resource="visa-commander_v4-71.qrc">
     <normaloff>:/images/dc2.png</normaloff>:/images/dc2.png</iconset>
   </property>
   <layout class="QGridLayout" name="gridLayout_5">
@@ -107,7 +107,7 @@
         <string/>
        </property>
        <property name="icon">
-        <iconset resource="vicom_v4-7_helixed.qrc">
+        <iconset resource="visa-commander_v4-71.qrc">
          <normaloff>:/images/unlocked.png</normaloff>
          <normalon>:/images/locked.png</normalon>:/images/unlocked.png</iconset>
        </property>
@@ -600,7 +600,7 @@ background-color: rgb(195, 195, 195);</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="vicom_v4-7_helixed.qrc"/>
+  <include location="visa-commander_v4-71.qrc"/>
  </resources>
  <connections/>
 </ui>

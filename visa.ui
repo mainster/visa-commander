@@ -14,7 +14,7 @@
    <string>Visa</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="vicom_v4-7_helixed.qrc">
+   <iconset resource="visa-commander_v4-71.qrc">
     <normaloff>:/images/VS.png</normaloff>:/images/VS.png</iconset>
   </property>
   <widget class="QWidget" name="visaWidget">
@@ -202,7 +202,7 @@ background-color: rgb(230, 230, 230);</string>
             <string/>
            </property>
            <property name="icon">
-            <iconset resource="vicom_v4-7_helixed.qrc">
+            <iconset resource="visa-commander_v4-71.qrc">
              <normaloff>:/images/DeleteRed.png</normaloff>:/images/DeleteRed.png</iconset>
            </property>
           </widget>
@@ -1511,7 +1511,7 @@ background-color: rgb(195, 195, 195);</string>
   </action>
   <action name="actionConnect">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/connect.png</normaloff>:/images/connect.png</iconset>
    </property>
    <property name="text">
@@ -1526,7 +1526,7 @@ background-color: rgb(195, 195, 195);</string>
   </action>
   <action name="actionDisconnect">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/disconnect.png</normaloff>:/images/disconnect.png</iconset>
    </property>
    <property name="text">
@@ -1541,7 +1541,7 @@ background-color: rgb(195, 195, 195);</string>
   </action>
   <action name="actionConfigure">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
    </property>
    <property name="text">
@@ -1556,7 +1556,7 @@ background-color: rgb(195, 195, 195);</string>
   </action>
   <action name="actionClear">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/clear.png</normaloff>:/images/clear.png</iconset>
    </property>
    <property name="text">
@@ -1571,7 +1571,7 @@ background-color: rgb(195, 195, 195);</string>
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/application-exit.png</normaloff>:/images/application-exit.png</iconset>
    </property>
    <property name="text">
@@ -1593,7 +1593,7 @@ background-color: rgb(195, 195, 195);</string>
   </action>
   <action name="actionSaveConfig">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/folder-512.png</normaloff>:/images/folder-512.png</iconset>
    </property>
    <property name="text">
@@ -1682,7 +1682,7 @@ background-color: rgb(195, 195, 195);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/dvm.png</normaloff>:/images/dvm.png</iconset>
    </property>
    <property name="text">
@@ -1740,7 +1740,7 @@ background-color: rgb(195, 195, 195);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/dc.png</normaloff>:/images/dc.png</iconset>
    </property>
    <property name="text">
@@ -1799,7 +1799,7 @@ background-color: rgb(195, 195, 195);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/fugen.png</normaloff>:/images/fugen.png</iconset>
    </property>
    <property name="text">
@@ -1822,7 +1822,7 @@ background-color: rgb(195, 195, 195);</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="vicom_v4-7_helixed.qrc"/>
+  <include location="visa-commander_v4-71.qrc"/>
  </resources>
  <connections/>
 </ui>

@@ -100,7 +100,7 @@
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/application-exit.png</normaloff>:/images/application-exit.png</iconset>
    </property>
    <property name="text">
@@ -115,7 +115,7 @@
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/VS.png</normaloff>
      <activeon>:/images/VSinv.png</activeon>:/images/VS.png</iconset>
    </property>
@@ -141,7 +141,7 @@
   </action>
   <action name="actUnderConst">
    <property name="icon">
-    <iconset resource="vicom_v4-7_helixed.qrc">
+    <iconset resource="visa-commander_v4-71.qrc">
      <normaloff>:/images/underConstruct.svg</normaloff>:/images/underConstruct.svg</iconset>
    </property>
    <property name="text">
@@ -157,7 +157,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="vicom_v4-7_helixed.qrc"/>
+  <include location="visa-commander_v4-71.qrc"/>
  </resources>
  <connections/>
 </ui>

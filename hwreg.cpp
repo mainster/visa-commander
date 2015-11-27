@@ -1,15 +1,10 @@
-
-#include "hwreg.h"
 #include <QtCore/QtGlobal>
-#include <QDebug>
-
-#include "utype.h"
-#include "calc.h"
 #include <QString>
 #include <QVector>
 
-class Utype;
-class Calc;
+#include "hwreg.h"
+#include "utype.h"
+
 
 /** If the header is included multiple times we have to outsource the
  * "description" define into implementation file to avoid "... multiple

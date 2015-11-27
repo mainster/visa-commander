@@ -1,28 +1,19 @@
-
 #ifndef DVM_H
 #define DVM_H
-#include "globals.h"
-#include "ioedit.h"
-#include "driver.h"
-#include "visareg.h"
-#include "visa.h"
 #include <QDockWidget>
 #include <QGroupBox>
-#include "calc.h"
+
+#include "hwreg.h"
 
 namespace Ui {
 class Dvm;
 }
-class Visa;
+
+class VisaReg;
 class Calc;
+class Visa;
 class Driver;
 
-/*_________________________________
-  //////////////////////////////////
-////////////////////////////////////*/
-/*///////*/ class VisaReg; /*///////*/
-//////////////////////////////////////
-//////////////////////////////////
 
 /**
  * This enum needs to be defined outside the class definition because we need

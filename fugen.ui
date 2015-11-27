@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowIcon">
-   <iconset resource="vicom_v4-7_helixed.qrc">
+   <iconset resource="visa-commander_v4-71.qrc">
     <normaloff>:/images/fugen.png</normaloff>:/images/fugen.png</iconset>
   </property>
   <property name="windowTitle">
@@ -141,7 +141,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="vicom_v4-7_helixed.qrc">
+           <iconset resource="visa-commander_v4-71.qrc">
             <normaloff>:/images/unlocked.png</normaloff>
             <normalon>:/images/locked.png</normalon>:/images/unlocked.png</iconset>
           </property>
@@ -544,7 +544,7 @@ font: 10pt &quot;Monospace&quot;;</string>
   </widget>
  </widget>
  <resources>
-  <include location="vicom_v4-7_helixed.qrc"/>
+  <include location="visa-commander_v4-71.qrc"/>
  </resources>
  <connections/>
 </ui>

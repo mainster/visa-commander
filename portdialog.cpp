@@ -1,44 +1,3 @@
-
-/****************************************************************************
-**
-** Copyright (C) 2012 Denis Shienkov <denis.shienkov@gmail.com>
-** Copyright (C) 2012 Laszlo Papp <lpapp@kde.org>
-** Contact: http://www.qt-project.org/legal
-**
-** This file is part of the QtSerialPort module of the Qt Toolkit.
-**
-** $QT_BEGIN_LICENSE:LGPL21$
-** Commercial License Usage
-** Licensees holding valid commercial Qt licenses may use this file in
-** accordance with the commercial license agreement provided with the
-** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia. For licensing terms and
-** conditions see http://qt.digia.com/licensing. For further information
-** use the contact form at http://qt.digia.com/contact-us.
-**
-** GNU Lesser General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 2.1 or version 3 as published by the Free
-** Software Foundation and appearing in the file LICENSE.LGPLv21 and
-** LICENSE.LGPLv3 included in the packaging of this file. Please review the
-** following information to ensure the GNU Lesser General Public License
-** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
-** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
-**
-** In addition, as a special exception, Digia gives you certain additional
-** rights. These rights are described in the Digia Qt LGPL Exception
-** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
-**
-** $QT_END_LICENSE$
-**
-****************************************************************************/
-
-#include "portdialog.h"
-#include "ui_portdialog.h"
-#include "globals.h"
-#include "mainwindow.h"
-#include "visa.h"
-
 #include <QIntValidator>
 #include <QLineEdit>
 #include <QSettings>
@@ -47,13 +6,13 @@
 #include <QSerialPort>
 #include <QtSerialPort/QSerialPortInfo>
 
+#include "portdialog.h"
+#include "ui_portdialog.h"
+#include "globals.h"
+
+
 QT_USE_NAMESPACE
 
-/*!
- \brief
-
- \param parent
-*/
 PortDialog::PortDialog(QDialog *parent) :
    QDialog(parent),
    ui(new Ui::PortDialog) {
@@ -76,26 +35,12 @@ PortDialog::PortDialog(QDialog *parent) :
    loadPersistancePortDialog();
    updateSettings();
 }
-/*!
- \brief
-
-*/
 PortDialog::~PortDialog() {
    delete ui;
 }
-/*!
- \brief
-
- \return PortDialog::Settings
-*/
 PortDialog::Settings PortDialog::settings() const {
    return currentSettings;
 }
-/*!
- \brief
-
- \param idx
-*/
 void PortDialog::showPortInfo(int idx) {
    if (idx != -1) {
       QStringList list = ui->serialPortInfoListBox->itemData(idx).toStringList();
@@ -107,19 +52,10 @@ void PortDialog::showPortInfo(int idx) {
       ui->pidLabel->setText(tr("Product Identifier: %1").arg(list.at(6)));
    }
 }
-/*!
- \brief
-
-*/
 void PortDialog::apply() {
    updateSettings();
    hide();
 }
-/*!
- \brief
-
- \param idx
-*/
 void PortDialog::checkCustomBaudRatePolicy(int idx) {
    bool isCustomBaudRate = !ui->baudRateBox->itemData(idx).isValid();
    ui->baudRateBox->setEditable(isCustomBaudRate);
@@ -129,10 +65,6 @@ void PortDialog::checkCustomBaudRatePolicy(int idx) {
       edit->setValidator(intValidator);
    }
 }
-/*!
- \brief
-
-*/
 void PortDialog::fillPortsParameters() {
    ui->baudRateBox->addItem(QStringLiteral("9600"), QSerialPort::Baud9600);
    ui->baudRateBox->addItem(QStringLiteral("19200"), QSerialPort::Baud19200);
@@ -163,10 +95,6 @@ void PortDialog::fillPortsParameters() {
    ui->flowControlBox->addItem(QStringLiteral("RTS/CTS"), QSerialPort::HardwareControl);
    ui->flowControlBox->addItem(QStringLiteral("XON/XOFF"), QSerialPort::SoftwareControl);
 }
-/*!
- \brief
-
-*/
 void PortDialog::fillPortsInfo() {
    ui->serialPortInfoListBox->clear();
    static const QString blankString = QObject::tr("N/A");
@@ -189,10 +117,6 @@ void PortDialog::fillPortsInfo() {
       ui->serialPortInfoListBox->addItem(list.first(), list);
    }
 }
-/*!
- \brief
-
-*/
 void PortDialog::updateSettings() {
    currentSettings.name = ui->serialPortInfoListBox->currentText();
 
@@ -236,11 +160,6 @@ void PortDialog::updateSettings() {
  * \todo {  Implement "No configfile" or "Configfile not accessable"
  *          Message  }
  */
-/*!
- \brief
-
- \return bool
-*/
 bool PortDialog::loadPersistancePortDialog() {
    QSETTINGS;
    ///< Load configuration file, pointed to by configFile
@@ -274,11 +193,6 @@ bool PortDialog::loadPersistancePortDialog() {
 * widget states in some where on the filesystem.
 *
 * \todo {  Implement a "Read only permission for Configfile" Message  }
-*/
-/*!
- \brief
-
- \return bool
 */
 bool PortDialog::savePersistancePortDialog() {
    /**

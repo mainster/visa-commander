@@ -1,27 +1,18 @@
+#include <QtGui>
+#include <QMessageBox>
+#include <QGridLayout>
+#include <QDebug>
 
 #include "register.h"
 #include "ui_register.h"
 #include "globals.h"
 
-#include <QMessageBox>
-#include <QDockWidget>
-#include <QLabel>
-#include <QTime>
-#include <QFile>
-#include <QTextStream>
-#include <QByteArray>
-#include <stdint.h>
-#include <QTimer>
-#include <QTextEdit>
-#include <QGridLayout>
-#include <QDebug>
+/**
+ * Forward declaration of class Register is ok since this is the implementation
+ * file of Register
+ */
+class Register;
 
-
-/*!
- \brief
-
- \param parent
-*/
 Register::Register(QWidget *parent) :
    QDialog(parent),
    ui(new Ui::Register) {
@@ -83,20 +74,12 @@ Register::Register(QWidget *parent) :
    this->setAttribute(Qt::WA_DeleteOnClose);
 
 }
-
-/*!
- \brief
-
-*/
 Register::~Register() {
    QSETTINGS;
    config.setValue("Register/geometry", saveGeometry());
    delete ui;
 }
-/*!
- \brief
 
-*/
 void Register::onBtnOneClicked()
 {
    QMessageBox *box1;
@@ -104,33 +87,14 @@ void Register::onBtnOneClicked()
    box1->setText("Message box 1");
    box1->show();
 }
-/*!
- \brief
-
- \param addr
- \param text
-*/
 void Register::setRegister(uint8_t addr, QString text) {
    if (addr >= MAX_ROWS)
       return;
    leArrC2[addr]->setText( text );
 }
-/*!
- \brief
-
- \param wmax
-*/
 void Register::setLeWidth(uint16_t wmax) {
    setLeWidth(wmax, 70);
 }
-/**
- * Fade out all line edit background colors by n steps
- */
-/*!
- \brief
-
- \param steps
-*/
 void Register::doFadeOut(uint8_t steps) {
    int i; QPalette p;
 
@@ -148,13 +112,6 @@ void Register::doFadeOut(uint8_t steps) {
       }
    }
 }
-/**
- * Apply light blue color background to interesting register addresses
- */
-/*!
- \brief
-
-*/
 void Register::setBgColorOfInterestings() {
    QPalette p; int i;
 
@@ -163,11 +120,6 @@ void Register::setBgColorOfInterestings() {
       leArrC2[ vInterest.at(i) ]->setPalette( p );
    }
 }
-/*!
- \brief
-
- \param differs
-*/
 void Register::setBgColor(QByteArray& differs) {
    QPalette p = leArrC2[0]->palette();
    p.setColor( QPalette::Base, QColor(0xff, 0x1f, 0x1f) );
@@ -189,12 +141,6 @@ void Register::setBgColor(QByteArray& differs) {
       }
    }
 }
-/*!
- \brief
-
- \param wmax
- \param wmin
-*/
 void Register::setLeWidth(uint16_t wmax, uint16_t wmin = 70) {
    if (wmax < wmin)
       wmin = wmax;
@@ -205,7 +151,6 @@ void Register::setLeWidth(uint16_t wmax, uint16_t wmin = 70) {
       leArrC2[i]->setMinimumWidth(wmin);
    }
 }
-
 bool Register::eventFilter(QObject *obj, QEvent *event) {
    if (obj == leArrC2[0]) {
       if (event->type() == QEvent::MouseButtonPress) {
