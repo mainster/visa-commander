@@ -273,7 +273,7 @@ private:
 
    Register *regFrm;
    Driver   *driver;
-   IOEdit   *ioedit;
+   IOEdit   *ioedit, *ioeditR;
    VisaReg  *visareg;
    Dvm      *dvmDc, *dvmAcDc;
    FuGen    *fugen;

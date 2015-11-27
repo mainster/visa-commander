@@ -31,6 +31,9 @@ FuGen::FuGen(QWidget *parent) :
    ui(new Ui::FuGen) {
    ui->setupUi(this);
 
+   DVAMP_PER_TICK = (VAMP_MAX - VAMP_MIN)/ VAMP_MAX_TICKS,
+         DFOUT_PER_TICK = (FOUT_MAX - FOUT_MIN)/ FOUT_MAX_TICKS;
+
    timCycl = new QTimer();
    timCycl->setInterval( INTERVAL_LCD * 1e3 );
    timCycl->start();
@@ -109,7 +112,8 @@ void FuGen::loadSineIntoFPGA() {
    visa->writeRam(&sinTbl, 0xc0);
 }
 
-/** Encoding Output amplitude (page 57..)
+/**
+ * Encoding Output amplitude (page 57..)
  * Determining Amp_Rng is now very easy: Check both conditions, starting with
  * Amp_Rng=3 and decrease Amp_Rng as long as both conditions are fulﬁlled. The
  * aim ist to ﬁnd the smalles possible value of KX without violating the
@@ -121,7 +125,9 @@ void FuGen::loadSineIntoFPGA() {
  * therefore, chooseKX as small as possibe without violating the two
  * conditions.
  */
-/** Return "calced" amp_rng which depends on physical target ampl voltage */
+/**
+ * Return "calced" amp_rng which depends on physical target ampl voltage
+ */
 FuGens::amp_rngs FuGen::calcAmp_rng() {
    // genCfg->Amp.float_;
    /**
@@ -244,16 +250,16 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    visa->gs.fuGenCfgAltered = true;
 }
 void FuGen::fillTxReg() {
-   vr->regFgenOut->h3037_fugen.out_ampl   = genCfg->Amp.int_;
-   vr->regFgenOut->h3037_fugen.out_duty   = genCfg->Duty.int_;
-   vr->regFgenOut->h3037_fugen.out_offs   = genCfg->Offs.int_;
+   vr->regFgenOut->h3037_fugen.out_ampl   = genCfg->Amp.reg16_;
+   vr->regFgenOut->h3037_fugen.out_offs   = genCfg->Offs.reg16_;
+   vr->regFgenOut->h3037_fugen.out_duty   = genCfg->Duty.reg16_;
    vr->regFgenOut->h3037_fugen.noise_type = (uint8_t) genCfg->noiseModel;
 
-   vr->regFgenFreq->h383b_fufreq.dword    = genCfg->Freq.int_;
+   vr->regFgenFreq->h383b_fufreq.dword    = genCfg->Freq.reg32_;
+
    QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
    visa->gs.fuGenCfgAltered = false;
    ioedit->putTxData( ret );
-
 }
 
 /*!
@@ -311,8 +317,12 @@ long FuGen::genCfg_t::convLCD2amp(double dVamp, FuGen::add_type type) {
       return -1;
    }
 
-   qDebug().noquote() << "Amp.float_" << Amp.float_
-                      << " Amp.reg16_" << Amp.reg16_;
+   QStringList IODEBUG; QString str;
+   IODEBUG << "Amp.float_" << QString::number( Amp.float_ )
+           << "Amp.reg16_" << QString::number( Amp.reg16_ );
+   str = IODEBUG.join(" ");
+   IOEdit *ioedit = IOEdit::getObjectPtr();
+   ioedit->putInfoLine( str );
 
    return (long) Amp.reg16_;
 }
@@ -344,8 +354,13 @@ long FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
     */
    Freq.reg32_ = (uint32_t) ((double)FACT_FREQ * Freq.float_);
 
-   qDebug().noquote() << "Freq.float_" << Freq.float_
-                      << " Freq.reg32_" << Freq.reg32_;
+   QStringList IODEBUG; QString str;
+   IODEBUG << "Freq.float_" << QString::number( Freq.float_ )
+           << "Freq.reg32_" << QString::number( Freq.reg32_ );
+   str = IODEBUG.join(" ");
+   IOEdit *ioedit = IOEdit::getObjectPtr();
+   ioedit->putInfoLine( str );
+
    return (long) Freq.reg32_;
 }
 
@@ -400,7 +415,7 @@ long FuGen::genCfg_t::convLCD2duty(double dDuty, FuGen::add_type type) {
    /**
     * Range check duty cycle value, 0 ... 100 [%]
     */
-   (Duty.float_ > DUTY_MAX_PERC0)
+   (Duty.float_ > DUTY_MAX_PERC)
          ?  Duty.float_ = DUTY_MAX_PERC
          :  Duty.float_ = Duty.float_ ;
 

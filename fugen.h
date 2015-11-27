@@ -36,7 +36,11 @@ class IOEdit;
 class FuGen : public QDockWidget {
 
    Q_OBJECT
-
+public:
+   QDataStream &operator<<(QDataStream &dstream/*, const IOEdit &cioed*/) {
+      dstream << "hallo";
+      return dstream;
+   }
 public:
    enum add_type {
       type_increment,
@@ -246,9 +250,13 @@ private:
    Visa        *visa;
    int         mouseWheelCnt;
 
+   double
+   DVAMP_PER_TICK,            //< ~53.3 mV/TickV
+   DFOUT_PER_TICK;            //< ~100Hz / Tick
    static VisaReg *vr;
    static FuGen *inst;
    static const QByteArray sinTbl;
+
    static const double
    INTERVAL_LCD      = 0.1,         //< s
 
@@ -272,9 +280,8 @@ private:
     */
    VAMP_MIN          = 0.05,        //< Vpp
    VAMP_MAX          = 8.0,         //< Vpp
-   VAMP_MAX_TICKS    = 150,         //< ~150 ticks @ range: 0...8Vpp 
-   DVAMP_PER_TICK    =              //< ~53.3 mV/TickV
-         (VAMP_MAX-VAMP_MIN)/ VAMP_MAX_TICKS,  
+   VAMP_MAX_TICKS    = 150,         //< ~150 ticks @
+                                    //< range: 0...8Vpp
 
    /**
     * DDS output frequency limits
@@ -283,11 +290,9 @@ private:
     * delta-f-out: DFOUT_PER_TICK = 100Hz / Tick
     *
     */
-   FOUT_MIN       =     0.1,        //< Hz
-   FOUT_MAX       =     5.0e6,      //< Hz
-   FOUT_MAX_TICKS =     50e3,
-   DFOUT_PER_TICK =                 //< ~100Hz / Tick
-         (FOUT_MAX-FOUT_MIN)/ FOUT_MAX_TICKS,
+   FOUT_MIN          =  0.1,        //< Hz
+   FOUT_MAX          =  5.0e6,      //< Hz
+   FOUT_MAX_TICKS    =  50e3,
 
    /**
     * Alternating output frequency
@@ -297,7 +302,7 @@ private:
     *                = 71.582788... * fout
     *                = fcFreq * fout
     */
-   FACT_FREQ   =  (0xffffffff/60e6),
+   FACT_FREQ         =  (0xffffffff/60e6),
 
    /**
     * Duty cycle for rectangular wave form
@@ -308,9 +313,9 @@ private:
     * Duty_Cycle  =  655.35 * duty_
     *             =  fcDuty * duty_
     */
-   DUTY_MIN_PERC  =     0.0,
-   DUTY_MAX_PERC  =   100.0,
-   FACT_DUTY      =  655.35,
+   DUTY_MIN_PERC     =  0.0,
+   DUTY_MAX_PERC     =  100.0,
+   FACT_DUTY         =  655.35,
 
    /**
     * Signal generator offset voltage
@@ -318,16 +323,12 @@ private:
     * Voffs = +- 4V but Vp must still stay smaler
     * than Vpp(8V)+Voffs_max(4V)
     */
-   VOFFS_MIN   =  -4.0,       //< V
-   VOFFS_MAX   =   4.0,       //< V
+   VOFFS_MIN         =  -4.0,       //< V
+   VOFFS_MAX         =  4.0;        //< V
 
-   V_PER_DIG         = 6.10352e-05, //< V
-   V_OFFS_PER_DIG    = 0.0,         //< V
-   V_AMP_MAX_FLOAT   = 12.5l,       //< V
-
-   Vout_max =   8.0,
-   Vout_min =  -8.0,
-   Vpp_max  =  10.0;
+//   Vout_max =   8.0,
+//   Vout_min =  -8.0,
+//   Vpp_max  =  10.0;
 };
 
 //Q_DECLARE_METATYPE()

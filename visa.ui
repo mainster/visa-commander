@@ -14,7 +14,7 @@
    <string>Visa</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="visa-commander_v4-71.qrc">
+   <iconset resource="visa-commander_v5.qrc">
     <normaloff>:/images/VS.png</normaloff>:/images/VS.png</iconset>
   </property>
   <widget class="QWidget" name="visaWidget">
@@ -1098,7 +1098,7 @@ background-color: rgb(195, 195, 195);</string>
     <item row="0" column="2">
      <widget class="QTabWidget" name="tabViews">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="defaultView">
        <attribute name="title">
@@ -1114,6 +1114,18 @@ background-color: rgb(195, 195, 195);</string>
            <enum>QFrame::Raised</enum>
           </property>
           <layout class="QGridLayout" name="gridLayout_13">
+           <property name="leftMargin">
+            <number>3</number>
+           </property>
+           <property name="topMargin">
+            <number>3</number>
+           </property>
+           <property name="rightMargin">
+            <number>3</number>
+           </property>
+           <property name="bottomMargin">
+            <number>3</number>
+           </property>
            <item row="0" column="0">
             <widget class="QPlainTextEdit" name="dummy"/>
            </item>
@@ -1289,7 +1301,7 @@ background-color: rgb(230, 230, 230);</string>
          <string/>
         </property>
         <property name="icon">
-         <iconset resource="visa-commander_v4-71.qrc">
+         <iconset resource="visa-commander_v5.qrc">
           <normaloff>:/images/DeleteRed.png</normaloff>:/images/DeleteRed.png</iconset>
         </property>
        </widget>
@@ -1535,7 +1547,7 @@ background-color: rgb(230, 230, 230);</string>
   </action>
   <action name="actionConnect">
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/connect.png</normaloff>:/images/connect.png</iconset>
    </property>
    <property name="text">
@@ -1550,7 +1562,7 @@ background-color: rgb(230, 230, 230);</string>
   </action>
   <action name="actionDisconnect">
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/disconnect.png</normaloff>:/images/disconnect.png</iconset>
    </property>
    <property name="text">
@@ -1565,7 +1577,7 @@ background-color: rgb(230, 230, 230);</string>
   </action>
   <action name="actionConfigure">
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/settings.png</normaloff>:/images/settings.png</iconset>
    </property>
    <property name="text">
@@ -1580,7 +1592,7 @@ background-color: rgb(230, 230, 230);</string>
   </action>
   <action name="actionClear">
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/clear.png</normaloff>:/images/clear.png</iconset>
    </property>
    <property name="text">
@@ -1595,7 +1607,7 @@ background-color: rgb(230, 230, 230);</string>
   </action>
   <action name="actionQuit">
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/application-exit.png</normaloff>:/images/application-exit.png</iconset>
    </property>
    <property name="text">
@@ -1617,7 +1629,7 @@ background-color: rgb(230, 230, 230);</string>
   </action>
   <action name="actionSaveConfig">
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/folder-512.png</normaloff>:/images/folder-512.png</iconset>
    </property>
    <property name="text">
@@ -1706,7 +1718,7 @@ background-color: rgb(230, 230, 230);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/dvm.png</normaloff>:/images/dvm.png</iconset>
    </property>
    <property name="text">
@@ -1764,7 +1776,7 @@ background-color: rgb(230, 230, 230);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/dc.png</normaloff>:/images/dc.png</iconset>
    </property>
    <property name="text">
@@ -1823,7 +1835,7 @@ background-color: rgb(230, 230, 230);</string>
     <bool>true</bool>
    </property>
    <property name="icon">
-    <iconset resource="visa-commander_v4-71.qrc">
+    <iconset resource="visa-commander_v5.qrc">
      <normaloff>:/images/fugen.png</normaloff>:/images/fugen.png</iconset>
    </property>
    <property name="text">
@@ -1846,7 +1858,7 @@ background-color: rgb(230, 230, 230);</string>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="visa-commander_v4-71.qrc"/>
+  <include location="visa-commander_v5.qrc"/>
  </resources>
  <connections/>
 </ui>

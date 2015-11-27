@@ -423,7 +423,8 @@ void IOEdit::putInfoLine(const QString cline,
                          const QChar colSep,
                          const QChar paddingChar) {
    QString tmp; int i;  QStringList lline;   QString line = cline;
-   QString HTML_INFO_LINE_MOD = HTML_INFO_LINE;
+   QString HTML_INFO_LINE_MOD = HTML_INFO_LINE.replace(tr("%PREFIX"),
+                                                       tr("  "));
 
    if (! prefix.isEmpty())
       HTML_INFO_LINE_MOD.replace("%PREFIX", prefix/* + "INFO"*/);
@@ -885,12 +886,7 @@ QString IOEdit::payloadDiff(QByteArray& pla,
    return out;
 }
 
-/*!
- \brief
 
- \param pla
- \return QString
-*/
 QString IOEdit::payloadMod(QByteArray pla) {
    bool *ok;
    ok = false;
@@ -924,4 +920,15 @@ QString IOEdit::payloadMod(QByteArray pla) {
    return s;
 }
 
+//QTextStream &IOEdit::operator <<(QTextStream &outStream, const IOEdit &ioed) {
+//   qDebug() << outStream;
+//   return outStream;
+//}
+
+//QString &IOEdit::operator<<(QString &strOut/*, const IOEdit &ioedit*/) {
+//   this->putInfoLine( strOut );
+//}
+
 /** RINGBUFFER END */
+
+

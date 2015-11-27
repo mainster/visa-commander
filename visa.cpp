@@ -93,10 +93,12 @@ Visa::Visa(QWidget *parent) :
 
    /** Create instances */
    driver   = Driver::getInstance();
-   ioedit   = IOEdit::getInstance(maxcfg, this);
-   visareg  = new VisaReg(this);
-   //   visareg  = VisaReg::getInstance();
    calc     = Calc::getInstance();
+
+   ioedit   = IOEdit::getInstance(maxcfg, this);
+   ioeditR  = new IOEdit(maxcfg, this);
+   visareg  = new VisaReg(this);
+
    fugen    = 0x00;
    pwr      = 0x00;
    dvmDc    = 0x00;
@@ -132,7 +134,7 @@ Visa::Visa(QWidget *parent) :
    timUserSeq  = new QTimer();
 
    /** Embedd the ioedit's instance widget into visa window */
-   QLayout *glout;
+   QLayout *glout; QV
    glout = ui->frame->layout();
    glout->replaceWidget(ui->dummy, this->ioedit);
    ui->frame->setLayout( glout );

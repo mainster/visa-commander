@@ -12,6 +12,8 @@
 #include <QPlainTextEdit>
 #include <QComboBox>
 #include <QRadioButton>
+#include <QDataStream>
+#include <QTextStream>
 
 #include "globals.h"
 
@@ -23,6 +25,11 @@ class Driver;
 class IOEdit : public QPlainTextEdit {
    Q_OBJECT
 
+public:
+//   QDataStream &operator<<(QDataStream &dstream/*, const IOEdit &cioed*/) {
+//      dstream << "hallo";
+//      return dstream;
+//   }
 public:
    struct visaSeqences {
       QString
