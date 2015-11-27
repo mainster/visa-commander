@@ -21,6 +21,8 @@ class VisaReg;
 FuGen    *FuGen::inst   = 0x00;
 VisaReg  *FuGen::vr     = 0x00;
 
+#define  DELTA_NORM  120
+
 /* ======================================================================== */
 /*                     class constructor                                    */
 /* ======================================================================== */
@@ -148,17 +150,32 @@ double FuGen::Kx(FuGens::amp_rngs fRng) {
 
 void FuGen::onCyclic() {
    /** Refresh lcd views */
-   ui->lcdFreq->display( genCfg->Freq.float_);
-   ui->lcdAmp ->display( genCfg->Amp.float_);
-   ui->lcdOffs->display( genCfg->Offs.float_);
-   ui->lcdDuty->display( genCfg->Duty.float_);
+   ui->lcdFreq->display( QString::number(genCfg->Freq.float_) + "Hz" );
+   ui->lcdAmp ->display( QString::number(genCfg->Amp.float_) + "V");
+   ui->lcdOffs->display( QString::number(genCfg->Offs.float_) + "V");
+   ui->lcdDuty->display( QString::number(genCfg->Duty.float_) + "%");
 
    /** If the fuGen-config-hasChanged flag is set ... */
    if (visa->gs.fuGenCfgAltered)
       fillTxReg();
 }
 /**
- * Setpoint changed
+ * Change LCD values by wheel scrolling
+ * event->delta() = +- 120
+ *
+ * (tested with logitech mx...)
+ *
+ * 1) Normieren auf: event->delta() = +- 1 (double)
+ * 2) Für jedes LCD einen "MAX_TICKS" festlegen, modifier mit berechnen
+ * 3) CTRL        + WheelTick: x4
+ *    CTRL+Shift  + WheelTick: x10  
+ *    
+ *    => Bei x10 soll V_Amp-range 0.1 ... 8Vpp
+ *       in 15ticks durchlaufen werden
+ *    => Bei  x1 soll V_Amp-range 0.1 ... 8Vpp
+ *       in 150ticks durchlaufen werden
+ *    => MAX_TICKS_V_AMP = 150
+ *    => DELTA_TICK_V_AMP = 8V / 150 = 53.33 mV/Tick
  */
 void FuGen::wheelEvent ( QWheelEvent * event ) {
    /**
@@ -169,18 +186,27 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
     */
    Qt::KeyboardModifiers mods =
          QApplication::queryKeyboardModifiers();
-   int div = 1;
+   
+   /** 
+    * evDelta is a element of [-1, 1]    (Wheel-down, Wheel-Up) 
+    */ 
+   short evDelta = (short) (event->delta() / DELTA_NORM);
 
+   /** 
+    * Acceleration factor could be x1, x4, x10
+    */  
+   double accFact = 1.0;
+   
    /**
     * Detect and use modifier keys to accelerate setpoint modification.
     * If CTRL key is pressed while proccesing wheelEvent, the division
     * (better multiplication-) factor div is set to 10. If the SHIFT key also
     * is pressed, the div factor is multiplied by 5...
     */
-   (mods & Qt::CTRL ) ? div = 10 : div = 1;
-   (mods & Qt::SHIFT) ? div *= 5 : div *= 1;
+   (mods & Qt::CTRL ) ? accFact = 4.0 : accFact = 1.0;
+   (mods & Qt::SHIFT) ? accFact *= 2.5 : accFact *= 1.0;
 
-   uint16_t DIV = 100/div;
+   uint16_t DIV = 100/accFact;
    /* ---------------------------------------------------------------- */
    /*         Get the name of object under the mouse pointer           */
    /* ---------------------------------------------------------------- */
@@ -198,15 +224,14 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    if (ui->btnLock->isChecked())
       return;
 
-   ioedit->putInfoLine( QString::number( event->delta()/(DIV) ));
-
-   //   V_PER_DIG = ui->lineEdit->text().toInt();
+   ioedit->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
 
    if (widName.contains( ui->lcdFreq->objectName() ))
       genCfg->convLCD2freq( event->delta()/(DIV), FuGen::type_increment );
    else
       if (widName.contains( ui->lcdAmp->objectName() ))
-         genCfg->convLCD2amp( event->delta()/(DIV), FuGen::type_increment );
+         genCfg->convLCD2amp( (double) evDelta * accFact * DVAMP_PER_TICK, 
+                              FuGen::type_increment );
       else
          if (widName.contains( ui->lcdOffs->objectName() ))
             genCfg->convLCD2offs( event->delta()/(DIV), FuGen::type_increment );
@@ -231,7 +256,6 @@ void FuGen::fillTxReg() {
 
 }
 
-
 /*!
  \brief Convert output amplitude from the lcds physical float representation to
  the corresponding 12-Bit register value
@@ -243,19 +267,28 @@ void FuGen::fillTxReg() {
  \return int   Integer representation of VAmp, this value also updates the
                fugen config structure.
 */
-int FuGen::genCfg_t::convLCD2amp(double VAmp, FuGen::add_type type) {
-   FuGens::amp_rngs rng = FuGen::calcAmp_rng();
+int FuGen::genCfg_t::convLCD2amp(double dVamp, FuGen::add_type type) {
+   FuGens::amp_rngs rng = FuGen::calcAmp_rng(); // 0x03
 
    if (type == FuGen::type_increment)
-      Amp.float_  += VAmp;
-   else Amp.float_ = VAmp;
+      Amp.float_  += dVamp;
+   else Amp.float_ = dVamp;
 
    /**
     * The Register Amplitude(0x30, 0x31) determines the voltage reference on t
     * he DAC and has to be calculated with this formula:
     * Programmers Manual, page 56
+    *
+    * H(31) | DDS-Generator | Amplitude 3.5Vrms | ca. 0x3e3f | rel | 10
+    * Hc(31): 9.63000                                            
+    * Kx(0x03) = 1
+    * 
+    * Amp.int_(0.1Vpp) = 4096/9.63 * 0.1V   =    43dec
+    * Amp.int_(8.0Vpp) = 4096/9.63 * 8.0V   =  3403dec
+    * 
     */
-   Amp.int_ = (uint16_t)((double) 4095 * VAmp/((double)vr->H[31] * Kx( rng )));
+   Amp.int_ = (uint16_t)((double) 4095 * Amp.float_/
+                         ((double)vr->H[31] * Kx(rng)));
 
    /**
     * Range check according to page 56, equ. (12.3)
@@ -263,6 +296,8 @@ int FuGen::genCfg_t::convLCD2amp(double VAmp, FuGen::add_type type) {
    if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
       Amp.int_ = -1;
 
+   qDebug().noquote() << "Amp.float_" << Amp.float_
+                      << " Amp.int_" << Amp.int_;
    return Amp.int_;
 }
 /**
@@ -277,11 +312,11 @@ int FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
       Freq.float_  += dFreq;
    else Freq.float_ = dFreq;
 
-   if (dFreq < 5.0e6)
+   if (Freq.float_ < 5.0e6)
       Freq.int_   = (uint16_t) ((double)fcFreq * dFreq);
    else {
       Freq.int_   = 0xffff;
-      Freq.float_ = 5e6;
+      Freq.float_ = 5.0e6;
    }
 
    /** Range check according to page 56, equ. (12.3)
@@ -292,15 +327,15 @@ int FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
 }
 
 ///< --------------- convert Offset -------------------------------
-int FuGen::genCfg_t::convLCD2offs(double dOffs, FuGen::add_type type) {
+int FuGen::genCfg_t::convLCD2offs(double dVoffs, FuGen::add_type type) {
    FuGens::amp_rngs rng = calcAmp_rng();
 
    if (type == FuGen::type_increment)
-      Offs.float_  += dOffs;
-   else Offs.float_ = dOffs;
+      Offs.float_  += dVoffs;
+   else Offs.float_ = dVoffs;
 
-   //         Offs.int_   = (uint16_t) (2047 * ((double) 1.0 + vrs->H[32] *
-   //                                   Offs.float_/Kx( rng )) + vrs->H[30]);
+   Offs.int_ = (uint16_t) (2047*((double) 1.0 + vr->H[32] *
+                                      Offs.float_ / Kx(rng)) + vr->H[30]);
 
    /** Range check according to page 56, equ. (12.4) */
    if (! ((Offs.int_ > 410) && (Offs.int_ < 3685)))

@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>289</width>
-    <height>212</height>
+    <width>352</width>
+    <height>258</height>
    </rect>
   </property>
   <property name="windowIcon">
-   <iconset resource="visa-commander_v4-71.qrc">
+   <iconset resource="visa-commander_v5.qrc">
     <normaloff>:/images/fugen.png</normaloff>:/images/fugen.png</iconset>
   </property>
   <property name="windowTitle">
@@ -141,7 +141,7 @@
            <string/>
           </property>
           <property name="icon">
-           <iconset resource="visa-commander_v4-71.qrc">
+           <iconset resource="visa-commander_v5.qrc">
             <normaloff>:/images/unlocked.png</normaloff>
             <normalon>:/images/locked.png</normalon>:/images/unlocked.png</iconset>
           </property>
@@ -162,11 +162,11 @@
            <enum>Qt::Horizontal</enum>
           </property>
           <property name="sizeType">
-           <enum>QSizePolicy::Expanding</enum>
+           <enum>QSizePolicy::Fixed</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>5</width>
+            <width>10</width>
             <height>20</height>
            </size>
           </property>
@@ -303,7 +303,7 @@ font: 10pt &quot;Monospace&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="digitCount">
-         <number>5</number>
+         <number>6</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
@@ -358,7 +358,7 @@ font: 10pt &quot;Monospace&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="digitCount">
-         <number>5</number>
+         <number>6</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
@@ -431,13 +431,16 @@ font: 10pt &quot;Monospace&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="digitCount">
-         <number>5</number>
+         <number>6</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
         </property>
+        <property name="value" stdset="0">
+         <double>1000.000000000000000</double>
+        </property>
         <property name="intValue" stdset="0">
-         <number>0</number>
+         <number>1000</number>
         </property>
        </widget>
       </item>
@@ -489,7 +492,7 @@ font: 10pt &quot;Monospace&quot;;</string>
          <bool>true</bool>
         </property>
         <property name="digitCount">
-         <number>5</number>
+         <number>6</number>
         </property>
         <property name="segmentStyle">
          <enum>QLCDNumber::Flat</enum>
@@ -544,7 +547,7 @@ font: 10pt &quot;Monospace&quot;;</string>
   </widget>
  </widget>
  <resources>
-  <include location="visa-commander_v4-71.qrc"/>
+  <include location="visa-commander_v5.qrc"/>
  </resources>
  <connections/>
 </ui>

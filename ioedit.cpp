@@ -428,8 +428,8 @@ void IOEdit::putInfoLine(const QString cline,
    if (! prefix.isEmpty())
       HTML_INFO_LINE_MOD.replace("%PREFIX", prefix/* + "INFO"*/);
 
-   if (line.length() > (line.remove(" ")).length())
-      Q_INFO << tr("Whitespace truncated!");
+//   if (line.length() > (line.remove(" ")).length())
+//      Q_INFO << tr("Whitespace truncated!");
 
    if ( nChar ) {
       lline = line.split( colSep );

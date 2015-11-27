@@ -78,13 +78,13 @@ public:
        \return int
       */
       ///< --------------- convert Amplitude -------------------------------
-      int convLCD2amp(double VAmp, add_type type = FuGen::type_increment);
+      int convLCD2amp(double dVamp, add_type type = FuGen::type_increment);
 
       ///< --------------- convert frequency -------------------------------
       int convLCD2freq(double dFreq, add_type type = FuGen::type_increment);
 
       ///< --------------- convert Offset ----------------------------------
-      int convLCD2offs(double dOffs, add_type type = FuGen::type_increment);
+      int convLCD2offs(double dVoffs, add_type type = FuGen::type_increment);
 
       ///< --------------- convert Duty-Cycle ------------------------------
       int convLCD2duty(double dDuty, add_type type = FuGen::type_increment);
@@ -250,9 +250,6 @@ private:
    static const QByteArray sinTbl;
    static const double
    INTERVAL_LCD      = 0.1,         //< s
-   AMP_MIN           = 0.05,        //< Vpp
-   AMP_MAX           = 8.0,         //< Vpp
-   HZ_PER_DIG        = 0.01397,     //< Hz
 
    /**
     * Output amplifier limits
@@ -272,6 +269,25 @@ private:
     * limited to Vout = +-8V.
     *
     */
+   VAMP_MIN          = 0.05,        //< Vpp
+   VAMP_MAX          = 8.0,         //< Vpp
+   VAMP_MAX_TICKS    = 150,         //< ~150 ticks @ range: 0...8Vpp 
+   DVAMP_PER_TICK    =              //< ~53.3 mV/TickV
+         (VAMP_MAX-VAMP_MIN)/ VAMP_MAX_TICKS,  
+
+   /**
+    * DDS output frequency limits
+    * --------------------------------------
+    * Output frequency: 0.1Hz ... 5MHz
+    * 
+    */
+   FOUT_MIN       =     0.1,        //< Hz
+   FOUT_MAX       =     5.0e6,      //< Hz
+   FOUT_MAX_TICKS =     50e3,
+   DFOUT_PER_TICK =                 //< ~100Hz / Tick
+         (FOUT_MAX-FOUT_MIN)/ FOUT_MAX_TICKS,
+
+   
    Vout_max =   8.0,
    Vout_min =  -8.0,
    Vpp_max  =  10.0,
@@ -281,7 +297,6 @@ private:
    fcFreq   = (0xffffffff/60e6),         //< 2^32/fclk = 71.58....
 
    V_PER_DIG         = 6.10352e-05, //< V
-   V_AMP_PER_DIG     = 0.0,         //< V
    V_OFFS_PER_DIG    = 0.0,         //< V
    V_AMP_MAX_FLOAT   = 12.5l,       //< V
    V_OFFS_MAX_FLOAT  = 12.5l;       //< V

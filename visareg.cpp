@@ -1094,7 +1094,7 @@ QVector<uint16_t> VisaReg::convertCalib(QString in,
    }
 
    if ((in.remove(" ")).length() < in.length())
-      Q_INFO << "Whitespace truncated!";
+//      Q_INFO << "Whitespace truncated!";
 
    /**
     * We expect that in is a String that encodes a sequence of hex-coded
@@ -1134,7 +1134,7 @@ char *VisaReg::convert(QString in) {
    raw = (char *) calloc(le, 1);
 
    if ((in.remove(" ")).length() < in.length()) {
-      Q_INFO << "Whitespace truncated!";
+//      Q_INFO << "Whitespace truncated!";
    }
 
    /**
