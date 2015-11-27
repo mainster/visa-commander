@@ -78,68 +78,17 @@ public:
        \return int
       */
       ///< --------------- convert Amplitude -------------------------------
-      ///< -----------------------------------------------------------------
-      int convLCD2amp(double dAmp, add_type type = FuGen::type_increment);
-      ///< --------------- convert Offset ----------------------------------
-      ///< -----------------------------------------------------------------
-      int convLCD2offs(double dOffs, add_type type = FuGen::type_increment) {
-         FuGens::amp_rngs rng = calcAmp_rng();
+      int convLCD2amp(double VAmp, add_type type = FuGen::type_increment);
 
-         if (type == FuGen::type_increment)
-            Offs.float_  += dOffs;
-         else Offs.float_ = dOffs;
-
-//         Offs.int_   = (uint16_t) (2047 * ((double) 1.0 + vrs->H[32] *
-//                                   Offs.float_/Kx( rng )) + vrs->H[30]);
-
-         /** Range check according to page 56, equ. (12.4) */
-         if (! ((Offs.int_ > 410) && (Offs.int_ < 3685)))
-            Offs.int_ = -1;
-
-         return 0;
-      }
-      ///< --------------- convert Duty-Cycle ------------------------------
-      ///< -----------------------------------------------------------------
-      int convLCD2duty(double dDuty, add_type type = FuGen::type_increment) {
-         FuGens::amp_rngs rng = calcAmp_rng();
-
-         if (type == FuGen::type_increment)
-            Duty.float_  += dDuty;
-         else Duty.float_ = dDuty;
-
-         if (dDuty < 100.0)
-            Duty.int_   = (uint16_t) ((double)fcDuty * dDuty);
-         else
-            Duty.int_   = 0xffff;
-
-         /** Range check according to page 56, equ. (12.3)
-         if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
-            Amp.int_ = -1;*/
-
-         return 0;
-      }
       ///< --------------- convert frequency -------------------------------
-      ///< -----------------------------------------------------------------
-      int convLCD2freq(double dFreq, add_type type = FuGen::type_increment) {
-         FuGens::amp_rngs rng = calcAmp_rng();
+      int convLCD2freq(double dFreq, add_type type = FuGen::type_increment);
 
-         if (type == FuGen::type_increment)
-            Freq.float_  += dFreq;
-         else Freq.float_ = dFreq;
+      ///< --------------- convert Offset ----------------------------------
+      int convLCD2offs(double dOffs, add_type type = FuGen::type_increment);
 
-         if (dFreq < 5.0e6)
-            Freq.int_   = (uint16_t) ((double)fcFreq * dFreq);
-         else {
-            Freq.int_   = 0xffff;
-            Freq.float_ = 5e6;
-         }
+      ///< --------------- convert Duty-Cycle ------------------------------
+      int convLCD2duty(double dDuty, add_type type = FuGen::type_increment);
 
-         /** Range check according to page 56, equ. (12.3)
-         if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
-            Amp.int_ = -1;*/
-
-         return 0;
-      }
 
       /*!
        \brief Check range of freq, offset and ampl values, truncate if

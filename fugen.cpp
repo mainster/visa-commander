@@ -107,8 +107,7 @@ void FuGen::loadSineIntoFPGA() {
    visa->writeRam(&sinTbl, 0xc0);
 }
 
-//< Encoding Output amplitude (page 57..)
-/**
+/** Encoding Output amplitude (page 57..)
  * Determining Amp_Rng is now very easy: Check both conditions, starting with
  * Amp_Rng=3 and decrease Amp_Rng as long as both conditions are fulﬁlled. The
  * aim ist to ﬁnd the smalles possible value of KX without violating the
@@ -172,31 +171,12 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
          QApplication::queryKeyboardModifiers();
    int div = 1;
 
-   /*
-   if (mods & Qt::ALT) {
-      if (ui->lcdVoltPos->mode() == QLCDNumber::Hex) {
-         ui->lcdVoltPos->setBinMode();
-         ui->lcdAmpPos->setBinMode();
-         ui->lcdVoltNeg->setBinMode();
-         ui->lcdAmpNeg->setBinMode();
-
-      }
-      else if (ui->lcdVoltPos->mode() == QLCDNumber::Dec) {
-         ui->lcdVoltPos->setHexMode();
-         ui->lcdAmpPos->setHexMode();
-         ui->lcdVoltNeg->setHexMode();
-         ui->lcdAmpNeg->setHexMode();
-      }
-      else if (ui->lcdVoltPos->mode() == QLCDNumber::Bin) {
-         ui->lcdVoltPos->setDecMode();
-         ui->lcdAmpPos->setDecMode();
-         ui->lcdVoltNeg->setDecMode();
-         ui->lcdAmpNeg->setDecMode();
-      }
-
-      return;
-   }
-   */
+   /**
+    * Detect and use modifier keys to accelerate setpoint modification.
+    * If CTRL key is pressed while proccesing wheelEvent, the division
+    * (better multiplication-) factor div is set to 10. If the SHIFT key also
+    * is pressed, the div factor is multiplied by 5...
+    */
    (mods & Qt::CTRL ) ? div = 10 : div = 1;
    (mods & Qt::SHIFT) ? div *= 5 : div *= 1;
 
@@ -250,6 +230,103 @@ void FuGen::fillTxReg() {
    ioedit->putTxData( ret );
 
 }
+
+
+/*!
+ \brief Convert output amplitude from the lcds physical float representation to
+ the corresponding 12-Bit register value
+
+ \fn FuGen::genCfg_t::convLCD2amp
+ \param VAmp   Physical representation of the output amplitude in Volts
+ \param type   Adding type, if VAmp is passed by a float based LCD value, type
+               must always be specified to be of type FuGen::type_increment
+ \return int   Integer representation of VAmp, this value also updates the
+               fugen config structure.
+*/
+int FuGen::genCfg_t::convLCD2amp(double VAmp, FuGen::add_type type) {
+   FuGens::amp_rngs rng = FuGen::calcAmp_rng();
+
+   if (type == FuGen::type_increment)
+      Amp.float_  += VAmp;
+   else Amp.float_ = VAmp;
+
+   /**
+    * The Register Amplitude(0x30, 0x31) determines the voltage reference on t
+    * he DAC and has to be calculated with this formula:
+    * Programmers Manual, page 56
+    */
+   Amp.int_ = (uint16_t)((double) 4095 * VAmp/((double)vr->H[31] * Kx( rng )));
+
+   /**
+    * Range check according to page 56, equ. (12.3)
+    */
+   if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
+      Amp.int_ = -1;
+
+   return Amp.int_;
+}
+
+///< --------------- convert Frequency -------------------------------
+int FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
+   FuGens::amp_rngs rng = calcAmp_rng();
+
+   if (type == FuGen::type_increment)
+      Freq.float_  += dFreq;
+   else Freq.float_ = dFreq;
+
+   if (dFreq < 5.0e6)
+      Freq.int_   = (uint16_t) ((double)fcFreq * dFreq);
+   else {
+      Freq.int_   = 0xffff;
+      Freq.float_ = 5e6;
+   }
+
+   /** Range check according to page 56, equ. (12.3)
+         if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
+            Amp.int_ = -1;*/
+
+   return 0;
+}
+
+///< --------------- convert Offset -------------------------------
+int FuGen::genCfg_t::convLCD2offs(double dOffs, FuGen::add_type type) {
+   FuGens::amp_rngs rng = calcAmp_rng();
+
+   if (type == FuGen::type_increment)
+      Offs.float_  += dOffs;
+   else Offs.float_ = dOffs;
+
+   //         Offs.int_   = (uint16_t) (2047 * ((double) 1.0 + vrs->H[32] *
+   //                                   Offs.float_/Kx( rng )) + vrs->H[30]);
+
+   /** Range check according to page 56, equ. (12.4) */
+   if (! ((Offs.int_ > 410) && (Offs.int_ < 3685)))
+      Offs.int_ = -1;
+
+   return 0;
+}
+
+///< --------------- convert Duty -------------------------------
+int FuGen::genCfg_t::convLCD2duty(double dDuty, FuGen::add_type type) {
+   FuGens::amp_rngs rng = calcAmp_rng();
+
+   if (type == FuGen::type_increment)
+      Duty.float_  += dDuty;
+   else Duty.float_ = dDuty;
+
+   if (dDuty < 100.0)
+      Duty.int_   = (uint16_t) ((double)fcDuty * dDuty);
+   else
+      Duty.int_   = 0xffff;
+
+   /** Range check according to page 56, equ. (12.3)
+         if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
+            Amp.int_ = -1;*/
+
+   return 0;
+}
+
+
 
 #define QFOLDINGSTART {
 const QByteArray FuGen::sinTbl =
@@ -306,22 +383,3 @@ const QByteArray FuGen::sinTbl =
       "FEFEFEFEFEFEFEFEFEFEFEFEFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"
       "FFFFFFFFFFFFFFFF";
 #define QFOLDINGEND }
-
-
-int FuGen::genCfg_t::convLCD2amp(double dAmp, FuGen::add_type type) {
-//   vrs = VisaReg::getObjectPtr();
-   FuGens::amp_rngs rng = FuGen::calcAmp_rng();
-
-   if (type == FuGen::type_increment)
-      Amp.float_  += dAmp;
-   else Amp.float_ = dAmp;
-
-   Amp.int_ = (uint16_t)((double) 4095 *
-                         dAmp/((double)vr->H[31] * Kx( rng )));
-
-   /** Range check according to page 56, equ. (12.3) */
-   if (! ((Amp.int_ > 0) && (Amp.int_ < LIM_12BIT_UINT)))
-      Amp.int_ = -1;
-
-   return 0;
-}

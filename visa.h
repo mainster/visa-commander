@@ -203,7 +203,7 @@ signals:
 
 public slots:
    void footerRefreshVisa();
-   void SinToRam();
+//   void SinToRam();
    void onActionRegistersOverview();
    void onBtnLoadSinClicked();
    void onTim1Timeout();

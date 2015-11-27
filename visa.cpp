@@ -279,8 +279,8 @@ void Visa::initActionsConnections() {
             ioedit,                 SLOT(  clear()  ));
    connect( ui->actionAbout,        SIGNAL(triggered()),
             this,                   SLOT(  about()  ));
-   connect( ui->actionSendSine,     SIGNAL(triggered()),
-            this,                   SLOT(  SinToRam()  ));
+//   connect( ui->actionSendSine,     SIGNAL(triggered()),
+//            this,                   SLOT(  SinToRam()  ));
    connect( ui->actionRegisters,    SIGNAL(triggered()),
             this,                   SLOT(  onActionRegistersOverview()  ));
    connect( ui->actionSaveConfig,   SIGNAL(triggered()),
