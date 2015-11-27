@@ -265,6 +265,9 @@ int FuGen::genCfg_t::convLCD2amp(double VAmp, FuGen::add_type type) {
 
    return Amp.int_;
 }
+/**
+ * ^^^^^^^^^^ TEST ME ^^^^^^^^^^
+ */
 
 ///< --------------- convert Frequency -------------------------------
 int FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
