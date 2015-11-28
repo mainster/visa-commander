@@ -79,6 +79,27 @@ Visa* Visa::inst = 0;
 Reg_bebf* Visa::regLedVlogic = 0;
 
 /* ======================================================================== */
+/*                            NOTES                                         */
+/* ======================================================================== */
+/**
+ * Bei der original Software läuft ein 10..12ms Heartbeat im Standby Betrieb
+ * (nur Serverfenster).
+ * Bei jedem heartbeat wird ein kurzer stream übertragen indem mit der Endung
+ * ... 00 47 E0 die unteren 71 (0x47 = 71) angefordert werden.
+ *
+ * TxStream (standby)
+ * ------------------
+ * 00000046706700  04    Startseq, 4 Blöcke
+ * 0001 62 01            ScopeX:  trig_enb, free_run, autostart, trigger, start 0
+ * 0005 72 0000000000    Ch1,Ch2: Gnd-position, filter aus, DC kopplung
+ * 0002 BE 1500          0x15 LED (freq, duty, color) 0x00 Vlogic
+ * 00 47 E0              Kennung für lese anforderung für 0x00...0x46
+ *                       (general, scope, pws, dvms, fu-gen)
+ *
+ * ======================================================================== */
+
+
+/* ======================================================================== */
 /*                     class constructor                                    */
 /* ======================================================================== */
 Visa::Visa(QWidget *parent) :
@@ -113,7 +134,7 @@ Visa::Visa(QWidget *parent) :
     */
    hbeat       = new MQTimer_t();
    hbeat->tim  = new QTimer();
-   hbeat->tim->setInterval(int( T_HEARTBEAT * 1e3 ));
+   hbeat->tim->setInterval(int( T_HEARTBEAT * 1e3 ));    //< 10ms heartbeat
    /**
     * Init the reload register for time division
     */

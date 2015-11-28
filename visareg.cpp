@@ -629,8 +629,87 @@ int VisaReg::reqDefaultRegs() {
 
    return 0;
 }
+int VisaReg::reqDefaultOrigRegs() {
+#define NUM_REGS  0x47
+   regScopeXctrl  = new Reg_6063();
+   regCh1PosFil   = new Reg_7073();
+   regCh2PosFil   = new Reg_7477();
+
+   QVector<HwReg*> hwRegs;
+   QVector<HwReg*>::iterator it;
+
+   //   hwRegs.push_back( regSetPwr );
+   hwRegs.push_back( regSetPwr );
+   for ( it = hwRegs.begin(); it != hwRegs.end(); *it++) {
+      (*it)->AboutRegister();
+   }
+   for ( it = hwRegs.begin(); it != hwRegs.end(); *it++) {
+      qout() << "Union size:" << (*it)->size();
+   }
+
+   /**
+    * Initial register state must be requested after fpga config
+    * was loaded... :-(
+    */
+//   regScopeXctrl->h6063_scopeXA.dword = 0x00 ???
+   regSetPwr->h8087_pows.Vplus_set = 4000;
+   regSetPwr->h8087_pows.ILim_plus = 3000;
+
+   QByteArray trxReq, trxReqRaw;
+   trxReq.clear();
+   trxReqRaw.clear();
+
+   /** Assemble standard req stream, according to original visa software */
+   trxReq.append( HEAD_DEFAULT_REQ.remove(" ")
+                  .replace("%NUM_READ", tr("%1").arg(NUM_REGS, 4, 16, QLC)));
+
+   if (false) {
+      trxReq = QString(trxReq)
+            .replace(tr("%NUM_READ"), tr("%1"))
+            .arg(NUM_REGS, 4, 16, QLC)
+            .remove(" ")
+            .toLatin1();
+   }
+
+   /** Convert ASCII coded stream to binary representation */
+   trxReqRaw.append( visa->convert(trxReq), trxReq.length()/2 );
+
+   Q_ASSERT(trxReqRaw.length() > 0);
+
+   if( trxVisa(trxReqRaw, "onRxRespDefaultReadCmpl(QByteArray&)", NUM_REGS)
+       != VisaReg::trx_success) {
+      qWarning();
+      return -1;
+   }
+
+   return 0;
+}
 /* ======================================================================== */
 /* ======================================================================== */
+void VisaReg::reqInitialRegState(ushort regCnt) {
+   QByteArray trxReq, trxReqRaw; bool ok;
+
+   trxReq.append(INIT_READ_REG_REQUEST.replace("%START", FRAMEHEAD));
+
+   trxReq = QString(trxReq)
+         .replace(tr("%NUM_READ"), tr("%1"))
+         .arg(regCnt, 4, 16, QLC)
+         .remove(" ")
+         .toLatin1();
+
+   trxReqRaw.append( visa->convert(trxReq), trxReq.length()/2 );
+   Q_ASSERT(trxReqRaw.length() > 0);
+
+   /**
+    * Initiate a transmitter-receiver work flow and register a
+    * RxResp complete callback slot
+    */
+   VisaReg::trxSts state =
+         trxVisa(trxReqRaw, "onRxRespInitalRegStateCmpl(QByteArray&)", regCnt);
+
+   if (state != VisaReg::trx_success)
+      qDebug() << "trxVisa error";
+}
 void VisaReg::testReadReg() {
    QByteArray trxReq, trxReqRaw;
    trxReq.append(INIT_READ_REG_REQUEST.replace(
@@ -722,6 +801,116 @@ int VisaReg::reqCalibDataFromAtiny(bool onoff) {
 /* ======================================================================== */
 /*                Rx response slot implementations                          */
 /* ======================================================================== */
+void VisaReg::onRxRespInitalRegStateCmpl(QByteArray& rxdata) {
+
+   /** First of all, disconnect this slot from readyRead() driver signal */
+   disconnect(driver, SIGNAL(reqResponseCmpl(QByteArray&)),
+              this,   SLOT(onRxRespInitalRegStateCmpl(QByteArray&)));
+
+//   beVerbose(rxdata);
+
+   /**
+    * Copy the initial register data and hold it as backup ofer the hole
+    * runtime
+    */
+   initialRegState.append( rxdata );
+
+   qDebug() << rxdata.toHex();
+
+   /**
+    * Split and write back unioned stream data
+    */
+   uint32_t ram = (uint32_t) rxdata.mid(0x06, regActRamTrig->size()).toInt();
+   qDebug() << "ram 0609: " << ram;
+   regActRamTrig->h0609_RAM_Addr.dword = ram;
+
+   uint32_t trigEv = (uint32_t) rxdata.mid(0x0a, regTrigEvDist->size()).toInt();
+   qDebug() << "trig ev: " << trigEv;
+   regTrigEvDist->h0a0d_trig_ev.dist = trigEv;
+
+   uint64_t AdcPwr = (uint64_t) rxdata.mid(0x10, regAdcPwr->size()).toInt();
+   qDebug() << "AdcPwr: " << AdcPwr;
+   regAdcPwr->h1017_adcPwr.lword = AdcPwr;
+
+   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
+   qDebug() << "AdcDvm: " << AdcDvm;
+   regAdcDvm->h181f_dvm.lword = AdcDvm;
+
+
+   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
+   qDebug() << "AdcDvm: " << AdcDvm;
+   regAdcDvm->h181f_dvm.lword = AdcDvm;
+
+   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
+   qDebug() << "AdcDvm: " << AdcDvm;
+   regAdcDvm->h181f_dvm.lword = AdcDvm;
+
+   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
+   qDebug() << "AdcDvm: " << AdcDvm;
+   regAdcDvm->h181f_dvm.lword = AdcDvm;
+
+
+
+   uint16_t ledVlog = (uint16_t) rxdata.mid(0xbe, regLedVlogic->size()).toInt();
+   qDebug() << "ledVlog: " << ledVlog;
+   regLedVlogic-> hbebf_led.word = ledVlog;
+
+   uint64_t setPwr = (uint64_t) rxdata.mid(0x80, regSetPwr->size()).toInt();
+   qDebug() << "setPwr: " << setPwr;
+   regSetPwr->h8087_pows.lword = setPwr;
+
+   uint16_t DvmRng = (uint16_t) rxdata.mid(0x8a, regDvmRngInp->size()).toInt();
+   qDebug() << "DvmRng: " << DvmRng;
+   regDvmRngInp-> h8a8b_rng.word = DvmRng;
+
+
+   /* ===================================================================== */
+//   QString rxdataStr = rxdata.toHex();
+//   static qint16 nOverwrite = 0;
+
+//   /** Local shortcut */
+//   Reg_181f::h181f_dvm_t rdvm = regAdcDvm->h181f_dvm;
+
+//   /** External supply voltage */
+//   double V_in =
+//         (rdvm.ADC_Vbias - rdvm.ADC_gnd) * H[14];
+
+//   /** Common scale factor */
+//   double SCAL =
+//         calc->cCalib[80].Hd / calc->cCalib[70].Hd;
+
+//   /** Calc all caombinations page 45/46 */
+//   QVector<double> dvms;
+//   for (int j=21; j<27; j++) {
+//      dvms.append(( (rdvm.ADC_avg & 0x3fff) -
+//                    (rdvm.ADC_sel_gnd & 0x3fff) +
+//                    H[j]) * SCAL * H[j-6]);
+//   }
+
+//   QString mode =
+//         tr("Dvm1 range 0.2V: #Dvm1 range 2.0V: #Dvm1 range 20V : #") +
+//         tr("Dvm2 range 0.2V: #Dvm2 range 2.0V: #Dvm2 range 20V : #");
+//   QStringList lst = mode.split("#");
+
+//   ioeditL->putInfoLine(QString::number(V_in), "V_in  :");
+
+//   for (int j=0; j<dvms.length(); j++)
+//      ioeditL->putInfoLine(QString::number(dvms[j]), lst.at(j));
+
+//   if (nOverwrite < 0)
+//      nOverwrite = ioeditL->blockCount();
+
+//   ioeditL->putRxData( rxdataStr );
+
+//   Dvm *DvmDC     = Dvm::getObjectPtr(dvmType_DC);
+//   Dvm *DvmACDC   = Dvm::getObjectPtr(dvmType_ACDC);
+
+//   /** Dvm lcd refresh */
+//   if ( (DvmDC != 0) && (DvmACDC != 0) ) {
+//      DvmDC->setLCDval(dvms.at(1));
+//      DvmACDC->setLCDval(dvms.at(1));
+//   }
+}
 void VisaReg::onRxRespDefaultReadCmpl(QByteArray& rxdata) {
 
    /** First of all, disconnect this slot from readyRead() driver signal */

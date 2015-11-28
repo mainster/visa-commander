@@ -20,7 +20,7 @@
 
 #define TMP_PATH        "/tmp/"
 /** Heartbeat timer periode - periodically req default register information */
-#define T_HEARTBEAT     250e-3
+#define T_HEARTBEAT     10e-3
 
 /** Refresh timer - periodically update footer information and others.. */
 #define T_REFRESH       1000e-3
@@ -57,6 +57,7 @@
 #define HEAD_FPGA_COMM        tr("00 00 00 46 70 67 00")
 #define HEAD_DATA_TO_SERIAL   tr("00 00 00 54 73 74 00")
 #define HEAD_DEFAULT_REQ      QString("00 00 00 46 70 67 00 01 %NUM_READ e0")
+//#define HEAD_DEFAULT_ORIG_REQ QString("00 00 00 46 70 67 00 01 %NUM_READ e0")
 
 #define  TESTBYTES  tr("66 77 88 99")
 

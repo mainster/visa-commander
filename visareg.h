@@ -90,27 +90,27 @@ public:
  * 32-Bit register
  * BIT-adressierbar
  */
-   typedef union {
-      struct {
-         uint32_t act_RAM_addr:16, ADDR_after_trig:16;
-      } ;
-      uint32_t dword;
-   } h0609_RAM_Addr;
+//   typedef union {
+//      struct {
+//         uint32_t act_RAM_addr:16, ADDR_after_trig:16;
+//      } ;
+//      uint32_t dword;
+//   } h0609_RAM_Addr;
 
    /* h0a..h0d  trig_ev distance
  *
  * 32-Bit register
  * byte-adressierbar
  */
-   typedef union {
-      struct {
-         uint8_t byte1;
-         uint8_t byte2;
-         uint8_t byte3;
-         uint8_t byte4;
-      } ;
-      uint32_t dist;
-   } h0a0d_trig_ev;
+//   typedef union {
+//      struct {
+//         uint8_t byte1;
+//         uint8_t byte2;
+//         uint8_t byte3;
+//         uint8_t byte4;
+//      } ;
+//      uint32_t dist;
+//   } h0a0d_trig_ev;
 
    /** h0e, h0f */
 
@@ -119,38 +119,36 @@ public:
  * 64-Bit register
  * BIT-adressierbar
  */
-   typedef union {
-      struct {
-         uint64_t OV_i0:1, OV_u0:1, ADC_Vplus:14;
-         uint64_t OV_i1:1, OV_u1:1, ADC_Iplus:14;
-         uint64_t OV_i2:1, OV_u2:1, ADC_Vminus:14;
-         uint64_t OV_i3:1, OV_u3:1, ADC_Iminus:14;
-      } ; /*cont;*/
-      uint64_t lword;
-   } h1017_adcPwr;
+//   typedef union {
+//      struct {
+//         uint64_t OV_i0:1, OV_u0:1, ADC_Vplus:14;
+//         uint64_t OV_i1:1, OV_u1:1, ADC_Iplus:14;
+//         uint64_t OV_i2:1, OV_u2:1, ADC_Vminus:14;
+//         uint64_t OV_i3:1, OV_u3:1, ADC_Iminus:14;
+//      } ; /*cont;*/
+//      uint64_t lword;
+//   } h1017_adcPwr;
 
    /* h18..h1f   DVM, Bias
  *
  * 64-Bit register
  * BIT-adressierbar
  */
-
-   typedef union {
-      struct {
-         uint64_t OV_i4:1, OV_u4:1, ADC_Vbias:14;
-         uint64_t OV_i5:1, OV_u5:1, ADC_avg:14;
-         uint64_t OV_i6:1, OV_u6:1, ADC_gnd:14;
-         uint64_t OV_i7:1, OV_u7:1, ADC_sel_gnd:14;
-      } ; /*cont;*/
-      uint64_t lword;
-   } h181f_dvm;
+//   typedef union {
+//      struct {
+//         uint64_t OV_i4:1, OV_u4:1, ADC_Vbias:14;
+//         uint64_t OV_i5:1, OV_u5:1, ADC_avg:14;
+//         uint64_t OV_i6:1, OV_u6:1, ADC_gnd:14;
+//         uint64_t OV_i7:1, OV_u7:1, ADC_sel_gnd:14;
+//      } ; /*cont;*/
+//      uint64_t lword;
+//   } h181f_dvm;
 
    /* h20..23     ACDC24
  *
  * 32-Bit register
  * BIT-adressierbar
  */
-
    typedef union {
       struct {
          uint32_t ACDC_val:24;
@@ -216,15 +214,15 @@ public:
  * 64-Bit register
  * BIT-adressierbar
  */
-   typedef union {
-      struct {
-         uint64_t reserved1:4, Vplus_set:12;
-         uint64_t reserved2:4, ILim_plus:12;
-         uint64_t reserved3:4, Vminus_set:12;
-         uint64_t reserved4:4, ILim_minus:12;
-      } ;
-      uint64_t lword;
-   } h8087_pows;
+//   typedef union {
+//      struct {
+//         uint64_t reserved1:4, Vplus_set:12;
+//         uint64_t reserved2:4, ILim_plus:12;
+//         uint64_t reserved3:4, Vminus_set:12;
+//         uint64_t reserved4:4, ILim_minus:12;
+//      } ;
+//      uint64_t lword;
+//   } h8087_pows;
 
 
    enum Dvm_Mx_Input {
@@ -242,13 +240,13 @@ public:
  * 16-Bit register
  * BIT-adressierbar
  */
-   typedef union {
-      struct {
-         uint16_t M1_rng:2, reserved1:1, M1_inpt:1, reserved2:4;
-         uint16_t M2_rng:2, reserved3:1, M2_inpt:1, reserved4:2, AD2_on:1, AD2_T:1;
-      } ;
-      uint16_t word;
-   } h8a8b_rng;
+//   typedef union {
+//      struct {
+//         uint16_t M1_rng:2, reserved1:1, M1_inpt:1, reserved2:4;
+//         uint16_t M2_rng:2, reserved3:1, M2_inpt:1, reserved4:2, AD2_on:1, AD2_T:1;
+//      } ;
+//      uint16_t word;
+//   } h8a8b_rng;
 
    //////////////////////////////////////
    //       h90...h9f   is for PA
@@ -365,6 +363,9 @@ public:
    Reg_181f *regAdcDvm;
    Reg_3037 *regFgenOut;
    Reg_383b *regFgenFreq;
+   Reg_6063 *regScopeXctrl;
+   Reg_7073 *regCh1PosFil;
+   Reg_7477 *regCh2PosFil;
    Reg_8087 *regSetPwr;
    Reg_8a8b *regDvmRngInp;
    Reg_bebf *regLedVlogic;
@@ -451,6 +452,10 @@ public slots:
 
    char *convertVisa(QString in);
    void testWriteReg2();
+   int reqDefaultOrigRegs();
+   void reqInitialRegState(ushort regCnt = 0x9f);
+
+   void onRxRespInitalRegStateCmpl(QByteArray &rxdata);
 signals:
    /** After hardware_xxx.dat file processed successfully AND the EEPROM
     * contents also is available, emit calibInfoAvailable() due to signal
@@ -460,7 +465,7 @@ signals:
 
 private slots:
 
-//   friend class Calc;
+   //   friend class Calc;
 
 protected:
 
@@ -481,6 +486,7 @@ private:
    Driver   *driver;
    IOEdit   *ioeditL, *ioeditR;
    Calc     *calc;
+   QList<QByteArray> initialRegState;
 
 };
 

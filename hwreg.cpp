@@ -40,6 +40,21 @@ const quint8 Reg_383b::address = 0x38;
 const QString Reg_383b::description =
       "383b   FuGen DDS, frequency of output signal";
 
+/** BIT STAGING NOT VERIFIED AT THIS POINT */
+const quint8 Reg_6063::address = 0x60;
+const QString Reg_6063::description =
+      "6063   Scope-XA, bits for free-run, trigger, start/stop - RAM_read_Addr";
+
+/** BIT STAGING NOT VERIFIED AT THIS POINT */
+const quint8 Reg_7073::address = 0x70;
+const QString Reg_7073::description =
+      "7073   Ch-1, Gnd-position, ACDC-coupling, input filter config";
+
+/** BIT STAGING NOT VERIFIED AT THIS POINT */
+const quint8 Reg_7477::address = 0x74;
+const QString Reg_7477::description =
+      "7477   Ch-2, Gnd-position, ACDC-coupling, input filter config";
+
 const quint8 Reg_8087::address = 0x80;
 const QString Reg_8087::description =
       "h80..h87   PWR_set ||  64-Bit register ||  BIT-adressierbar";

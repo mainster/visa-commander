@@ -234,18 +234,6 @@ public:
     * BIT-adressierbar
     */
    typedef union {
-      /**
-       * @brief
-       *
-       */
-      /**
-       * @brief
-       *
-       */
-      /*!
-       \brief
-
-      */
       struct {
          uint64_t OV_i0:1, OV_u0:1, ADC_Vplus:14;
          uint64_t OV_i1:1, OV_u1:1, ADC_Iplus:14;
@@ -253,18 +241,6 @@ public:
          uint64_t OV_i3:1, OV_u3:1, ADC_Iminus:14;
       } ;
       uint64_t lword;
-      /**
-    * @brief
-    *
-    */
-      /**
-    * @brief
-    *
-    */
-      /*!
-    \brief
-
-   */
    } h1017_adcPwr_t;
 
    h1017_adcPwr_t h1017_adcPwr;
@@ -324,18 +300,6 @@ public:
     *                         --> ADC_sel_gnd 0x191c
     */
    typedef union {
-      /**
-       * @brief
-       *
-       */
-      /**
-       * @brief
-       *
-       */
-      /*!
-       \brief
-
-      */
       struct {
          //! (1)
          //         uint64_t OV_i4:1, OV_u4:1, ADC_Vbias:14;
@@ -354,18 +318,6 @@ public:
          uint64_t ADC_Vbias:14,  OV_u4:1, OV_i4:1;
       } ; /*cont;*/
       uint64_t lword;
-      /**
-    * @brief
-    *
-    */
-      /**
-    * @brief
-    *
-    */
-      /*!
-    \brief
-
-   */
    } h181f_dvm_t;
    h181f_dvm_t h181f_dvm;
 #pragma pack(pop)
@@ -385,6 +337,9 @@ private:
    static const QString description;
 };
 
+// -------------------------------------------
+/** BIT STAGING NOT VERIFIED AT THIS POINT, not shure about that so ...*/
+// -------------------------------------------
 /* ======================================================================== */
 /*                   Registers 0x30 ... 0x37     FUGEN, ampl, offset, duty  */
 /* ======================================================================== */
@@ -436,6 +391,9 @@ private:
    static const QString description;
 };
 
+// -------------------------------------------
+/** BIT STAGING NOT VERIFIED AT THIS POINT, not shure about that so ...*/
+// -------------------------------------------
 /* ======================================================================== */
 /*                   Registers 0x38 ... 0x3b     FUGEN, DDS freq            */
 /* ======================================================================== */
@@ -467,6 +425,151 @@ public:
       uint32_t dword;
    } h383b_fufreq_t;
    h383b_fufreq_t h383b_fufreq;
+#pragma pack(pop)
+
+   QVector<double> getCalc();
+public slots:
+
+private:
+   //   HwReg::metrics_t metrics;
+   static const quint8 address;
+   static const QString description;
+};
+
+
+// -------------------------------------------
+/** BIT STAGING NOT VERIFIED AT THIS POINT */
+// -------------------------------------------
+/* ======================================================================== */
+/*                   Registers 0x60 ... 0x63     SCOPE-X, bit field         */
+/* ======================================================================== */
+class Reg_6063 : public HwReg {
+
+public:
+   quint8 getAddr() {  return address;  }
+   void AboutRegister() {
+      qDebug() << QString("Address: ").toStdString().c_str() <<
+                  QString("0x%1").arg(address, 2, 16, QLatin1Char('0'))
+                  .toStdString().c_str() <<
+                  QString(" %1byte ").arg(size()).toStdString().c_str() <<
+                  QString(description).toStdString().c_str();
+   }
+   uint16_t size() { return sizeof(h6063_scopeXA); }
+
+   quint64 getData() { return h6063_scopeXA.dword; }
+
+/* h60..h63  Scope-X, different bits like
+ * trig_end, free_run, stop
+ *
+ * 32-Bit register
+ * Word-adressierbar
+ */
+#pragma pack(push, 1)
+   typedef union {
+      struct {
+         uint32_t ramReadAddr:16;
+         uint32_t nc7_62:1, trig_enb:1, free_run:1, auto_start:1, nc3_62:1;
+         uint32_t trig:1, start:1, stop:1;
+         uint32_t nc7_63:1, ram_size_code:3, nc3_63:1;
+         uint32_t LA_on:1, Ch2_on:1, Ch1_on:1;
+      } ;
+      uint32_t dword;
+   } h6063_scopeXA_t;
+   h6063_scopeXA_t h6063_scopeXA;
+#pragma pack(pop)
+
+   QVector<double> getCalc();
+public slots:
+
+private:
+   //   HwReg::metrics_t metrics;
+   static const quint8 address;
+   static const QString description;
+};
+
+
+// -------------------------------------------
+/** BIT STAGING NOT VERIFIED AT THIS POINT */
+// -------------------------------------------
+/* ======================================================================== */
+/*                   Registers 0x70 ... 0x73     Ch-1, Gnd-posit, filter    */
+/* ======================================================================== */
+class Reg_7073 : public HwReg {
+
+public:
+   quint8 getAddr() {  return address;  }
+   void AboutRegister() {
+      qDebug() << QString("Address: ").toStdString().c_str() <<
+                  QString("0x%1").arg(address, 2, 16, QLatin1Char('0'))
+                  .toStdString().c_str() <<
+                  QString(" %1byte ").arg(size()).toStdString().c_str() <<
+                  QString(description).toStdString().c_str();
+   }
+   uint16_t size() { return sizeof(h7073_CH1_pos); }
+
+   quint64 getData() { return h7073_CH1_pos.dword; }
+
+/* h70..h73  Ch-1, Gnd-posit, filter
+ *
+ * 32-Bit register
+ * Word-adressierbar
+ */
+#pragma pack(push, 1)
+   typedef union {
+      struct {
+         uint32_t nc74_70:4, pos:12, ACDC:1, d1:1, a1:1, Rs:1;
+         uint32_t nc3_72:1, d7:3, filter:8;
+      } ;
+      uint32_t dword;
+   } h7073_CH1_pos_t;
+   h7073_CH1_pos_t h7073_CH1_pos;
+#pragma pack(pop)
+
+   QVector<double> getCalc();
+public slots:
+
+private:
+   //   HwReg::metrics_t metrics;
+   static const quint8 address;
+   static const QString description;
+};
+
+
+// -------------------------------------------
+/** BIT STAGING NOT VERIFIED AT THIS POINT */
+// -------------------------------------------
+/* ======================================================================== */
+/*                   Registers 0x74 ... 0x77     Ch-2, Gnd-posit, filter    */
+/* ======================================================================== */
+class Reg_7477 : public HwReg {
+
+public:
+   quint8 getAddr() {  return address;  }
+   void AboutRegister() {
+      qDebug() << QString("Address: ").toStdString().c_str() <<
+                  QString("0x%1").arg(address, 2, 16, QLatin1Char('0'))
+                  .toStdString().c_str() <<
+                  QString(" %1byte ").arg(size()).toStdString().c_str() <<
+                  QString(description).toStdString().c_str();
+   }
+   uint16_t size() { return sizeof(h7477_CH2_pos); }
+
+   quint64 getData() { return h7477_CH2_pos.dword; }
+
+/* h74..h77  Ch-2, Gnd-posit, filter
+ *
+ * 32-Bit register
+ * Word-adressierbar
+ */
+#pragma pack(push, 1)
+   typedef union {
+      struct {
+         uint32_t nc74_74:4, pos:12, ACDC:1, d1:1, a1:1, Rs:1;
+         uint32_t nc3_76:1, d7:3, filter:8;
+      } ;
+      uint32_t dword;
+   } h7477_CH2_pos_t;
+   h7477_CH2_pos_t h7477_CH2_pos;
 #pragma pack(pop)
 
    QVector<double> getCalc();
