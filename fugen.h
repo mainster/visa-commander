@@ -37,7 +37,7 @@ class FuGen : public QDockWidget {
 
    Q_OBJECT
 public:
-   QDataStream &operator<<(QDataStream &dstream/*, const IOEdit &cioed*/) {
+   QDataStream &operator<<(QDataStream &dstream/*, const ioeditL&cioed*/) {
       dstream << "hallo";
       return dstream;
    }
@@ -246,7 +246,9 @@ public slots:
 private:
    Ui::FuGen   *ui;
    QTimer      *timCycl;
-   IOEdit      *ioedit ;
+
+   IOEdit *ioeditL, *ioeditR;
+
    Visa        *visa;
    int         mouseWheelCnt;
 

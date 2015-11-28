@@ -24,16 +24,11 @@ Calc::Calc(QWidget *parent) :
    QObject(parent) {
 
    QSETTINGS;
-   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
-                             Visa::MAX_CONSOLE_CHARS).toInt();
 
-//   visareg = VisaReg::getInstance();
-   ioedit   = IOEdit::getInstance(maxcfg, parent );
-   visareg = VisaReg::getObjectPtr();
-//   ioedit   = IOEdit::getObjectPtr();
+   ioeditL  = IOEdit::getInstance(location_Left, parent);
+   visareg  = VisaReg::getObjectPtr();
    eepromRx = new QVector<uint16_t>(100);
 }
-
 Calc::~Calc() {
 
 }
@@ -42,8 +37,9 @@ void Calc::onCalibInfoAvailable() {
    if (mathAdjustment(cCalib, *eepromRx))
       Q_INFO << "call to mathAdjustment() returns error!";
    else
-      ioedit->putInfoLine("Calibration successful");
+      ioeditL->putInfoLine("Calibration successful");
 }
+
 /**
  * -------------------------------------------------------------------------
  *             VisaScope - Programmers Manual   page 37
@@ -186,16 +182,70 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
    int k = 0; QString str;
 
    /** Table header row */
-   ioedit->putInfoLine( tr("H(#): @H_alt @Hcorr @Note @Ctol"), "", 8, '@', '_');
+   ioeditL->putInfoLine( tr("H(#): @H_alt @Hcorr @Note @Ctol"), "", 8, '@', '_');
 
    for(it = hwCal.begin(); it < hwCal.end(); it++, k++) {
       if ( hwCal[k].Hd ||  hwCal[k].H || (! hwCal[k].note.isEmpty()) ) {
          str.sprintf("H(%i):@%.4g@%.4g@%s@0x%02x",
                      k, hwCal[k].Hd, hwCal[k].H,
                      hwCal[k].note.toStdString().c_str(), hwCal[k].C);
-         ioedit->putInfoLine( str, "", 10, '@', '_');
+         ioeditL->putInfoLine( str, "", 10, '@', '_');
       }
    }
+
+   /**
+    * QTableWidget implementation
+    */
+   int COL_CNT = 5;
+   int ROW_CNT = hwCal.count() + 3;
+   int rctr = 0, cctr = 0;
+   QList<QTableWidgetItem *> tabItms;
+   QString s;
+
+   visa->pTw->setColumnCount( COL_CNT );
+   visa->pTw->setRowCount( ROW_CNT );
+
+   QFont fnt;
+   fnt.setBold(true);
+   fnt.setFamily("Arial");
+
+   QStringList hhead;
+   hhead << "Hxx" << "Hdat" << "Hcor" << "Note" << "Ctol";
+
+   QList<QTableWidgetItem *> tabHead;
+
+   for (int i = 0; i< COL_CNT; i++) {
+      tabHead.append( new QTableWidgetItem(hhead[ i ]));
+      tabHead.last()->setFont( fnt );
+      visa->pTw->setHorizontalHeaderItem(i, tabHead.last());
+   }
+
+   foreach (hw_calib_t hwc, hwCal) {
+//      tabItms.append( new QTableWidgetItem( s.sprintf("H%02x", rctr)) );
+//      tabItms.last()->setFont( fnt );
+//      visa->pTw->setVerticalHeaderItem(rctr, tabItms.last());
+
+      tabItms.append( new QTableWidgetItem( s.sprintf("H%02x", rctr)) );
+      visa->pTw->setItem(rctr, cctr++, tabItms.last());
+      tabItms.append( new QTableWidgetItem( s.sprintf("%.4g", hwc.Hd)) );
+      visa->pTw->setItem(rctr, cctr++, tabItms.last());
+      tabItms.append( new QTableWidgetItem( s.sprintf("%.4g", hwc.H)) );
+      visa->pTw->setItem(rctr, cctr++, tabItms.last());
+      tabItms.append( new QTableWidgetItem( s.sprintf("%s", hwc.note
+                                                      .toStdString().c_str())) );
+      visa->pTw->setItem(rctr, cctr++, tabItms.last());
+      tabItms.append( new QTableWidgetItem( s.sprintf("0x%02x", hwc.C)) );
+      visa->pTw->setItem(rctr, cctr, tabItms.last());
+
+      rctr++;
+      cctr = 0;
+   }
+
+   visa->pTw->setVisible( false );
+   visa->pTw->resizeColumnsToContents();
+   visa->pTw->resizeRowsToContents();
+   visa->pTw->setVisible( true );
+
 
    /**
     * Disconnect any SIGNALS connected to ??? receiver
@@ -239,7 +289,7 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
    }
    QRegExp rx("(\\d{1,2})");
    QStringList rxLst;
-   int idx; QString s;
+   int idx;
 
    while (! fd.atEnd()) {
       line = fd.readLine();
@@ -277,6 +327,7 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
       visareg->H.append( hwCal[j].H );
    return 0;
 }
+
 int Calc::loadHardwareDat(QString path) {
    QStringList lst; QByteArray line;
    int i;
@@ -306,8 +357,9 @@ int Calc::loadHardwareDat(QString path) {
       cCalib[lst[0].toInt()].Hd = lst[1].toDouble();
       cCalib[lst[0].toInt()].note = lst[2].remove(" ");
    }
-   IOEdit *ioedit = IOEdit::getObjectPtr();
-   ioedit->putInfoLine("Hardware values read!");
+
+   ioeditL = IOEdit::getObjectPtr();
+   ioeditL->putInfoLine("Hardware values read!");
 
    /** Remove the prior over-resized count of vector components */
    int k = cCalib.length() - 1;
@@ -321,6 +373,7 @@ int Calc::loadHardwareDat(QString path) {
 
    return 0;
 }
+
 void Calc::loadHardwareDat() {
    if (loadHardwareDat(DEFAULT_DAT_FILE) < 0)
       qDebug() << "load hardware_dat failed!";
@@ -329,6 +382,7 @@ void Calc::loadHardwareDat() {
       visa->gs.hw_xxx_dat_loaded = true;
    }
 }
+
 /**
  * Calculate physical values for 0x10..0x27
  */
@@ -346,7 +400,7 @@ int Calc::physCalcADC() {
    //   int k = 0; QString str;
 
    //   /** Table header row */
-   //   ioedit->putInfoLine( tr("H(#): @H_alt @Hcorr @Note @Ctol"), 8, '@', '_');
+   //   ioeditL->putInfoLine( tr("H(#): @H_alt @Hcorr @Note @Ctol"), 8, '@', '_');
 
    //   for(it = cCalib.begin(); it < cCalib.end(); it++, k++) {
    //      if ( cCalib[k].Hd ||  cCalib[k].H || (! cCalib[k].note.isEmpty()) ) {
@@ -354,7 +408,7 @@ int Calc::physCalcADC() {
    //                     k, cCalib[k].Hd, cCalib[k].H,
    //                     cCalib[k].note.toStdString().c_str(), cCalib[k].C);
    //         qDebug() << str;
-   //         ioedit->putInfoLine( str, 10, '@', '_');
+   //         ioeditL->putInfoLine( str, 10, '@', '_');
    //      }
    //   }
    //   qDebug() << tr("d");

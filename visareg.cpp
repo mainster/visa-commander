@@ -37,8 +37,8 @@ VisaReg::VisaReg(QObject *parent) :
    timReqTimeout = new QTimer();
    /** Request for a pointer to driver instance */
    driver = Driver::getObjectPtr();    //?????
-//   ioedit = IOEdit::getInstance(maxcfg, parent->parent());
-   ioedit = IOEdit::getObjectPtr();
+//   ioeditL= IOEdit::getInstance(maxcfg, parent->parent());
+   ioeditL= IOEdit::getObjectPtr();
    visa   = (Visa*) parent;
 
    regActRamTrig = new Reg_0609();
@@ -141,7 +141,7 @@ void VisaReg::onReadReqTimeout() {
       rxed.append("");
 
    QString msg = QString("Rx Timeout, bytes received: %1" + rxed).arg(rxCount);
-   ioedit->putInfoLine( msg );
+   ioeditL->putInfoLine( msg );
    Q_INFO << msg;
 
    driver->serial->flush();
@@ -793,15 +793,15 @@ void VisaReg::onRxRespDefaultReadCmpl(QByteArray& rxdata) {
          tr("Dvm2 range 0.2V: #Dvm2 range 2.0V: #Dvm2 range 20V : #");
    QStringList lst = mode.split("#");
 
-   ioedit->putInfoLine(QString::number(V_in), "V_in  :");
+   ioeditL->putInfoLine(QString::number(V_in), "V_in  :");
 
    for (int j=0; j<dvms.length(); j++)
-      ioedit->putInfoLine(QString::number(dvms[j]), lst.at(j));
+      ioeditL->putInfoLine(QString::number(dvms[j]), lst.at(j));
 
    if (nOverwrite < 0)
-      nOverwrite = ioedit->blockCount();
+      nOverwrite = ioeditL->blockCount();
 
-   ioedit->putRxData( rxdataStr );
+   ioeditL->putRxData( rxdataStr );
 
    Dvm *DvmDC     = Dvm::getObjectPtr(dvmType_DC);
    Dvm *DvmACDC   = Dvm::getObjectPtr(dvmType_ACDC);
@@ -837,33 +837,33 @@ void VisaReg::beVerbose(QByteArray& rxdata) {
    /*
    QRegExp text_to_find("INFO*Calibration", Qt::CaseInsensitive);
    text_to_find.setPatternSyntax(QRegExp::Wildcard);
-   QTextCursor find_result = ioedit->document()->find(text_to_find);
+   QTextCursor find_result = ioeditL->document()->find(text_to_find);
 
    if (! find_result.isNull()) {
-      ioedit->clear();
+      ioeditL->clear();
       nOverwrite = -1;
    }
    else {
-      QTextBlock block = ioedit->document()->begin();
-      for (uint i = 0; i < ioedit->blockCount()+1; i++) {
+      QTextBlock block = ioeditL->document()->begin();
+      for (uint i = 0; i < ioeditL->blockCount()+1; i++) {
            QTextCursor cursor(block);
            cursor.select(QTextCursor::BlockUnderCursor);
            block = block.next();
 
            QRegExp text_to_find("@:", Qt::CaseInsensitive);
-           QTextCursor find_result = ioedit->document()->find(text_to_find);
+           QTextCursor find_result = ioeditL->document()->find(text_to_find);
 
            if (! find_result.isNull())
               cursor.removeSelectedText();
       }
-      QTextCursor cur = ioedit->textCursor();
+      QTextCursor cur = ioeditL->textCursor();
       cur.document()->begin();
       Q_INFO << cur.position() << cur.positionInBlock();
    }
 */
 
    if (visa->getUiClearConsoleIsChecked())
-      ioedit->clear();
+      ioeditL->clear();
 
    uint32_t tmp0 = ((uint32_t)
                     (rxdata[0x10] << 24) +
@@ -911,15 +911,15 @@ void VisaReg::beVerbose(QByteArray& rxdata) {
                     H[j]) * SCAL * H[j-6]);
 
    if (! visa->getUiSuppressDefaultPutIsChecked()) {
-      ioedit->putInfoLine(QString::number(V_in), "V_in  :");
+      ioeditL->putInfoLine(QString::number(V_in), "V_in  :");
 
       for (int j=0; j<dvms.length(); j++)
-         ioedit->putInfoLine(QString::number(dvms[j]), lst.at(j));
+         ioeditL->putInfoLine(QString::number(dvms[j]), lst.at(j));
 
       if (nOverwrite < 0)
-         nOverwrite = ioedit->blockCount();
+         nOverwrite = ioeditL->blockCount();
 
-      ioedit->putRxData( rxdataStr );
+      ioeditL->putRxData( rxdataStr );
    }
    Dvm *DvmDC     = Dvm::getObjectPtr(dvmType_DC);
    Dvm *DvmACDC   = Dvm::getObjectPtr(dvmType_ACDC);
@@ -948,7 +948,7 @@ void VisaReg::beVerbose(QByteArray& rxdata) {
    //      vr.append( driver->rxBuffReq.data.mid(0x10 + k, 2)
    //                 .toHex().toInt(&ok, 16) );
    //      str = QString("%1 ").arg(vr.first(), 4, 16, QLC);
-   //      ioedit->putRxData( str );
+   //      ioeditL->putRxData( str );
    //   }
 
 }
@@ -975,10 +975,10 @@ void VisaReg::onRxRespInfoUcCmpl(QByteArray& rxdata) {
    else
       str.append("Testbytes not ones-complements");
 
-   ioedit->putInfoLine( str );
+   ioeditL->putInfoLine( str );
 
    QString rxBuffStr = driver->rxBuffReq.data.toHex();
-   ioedit->putRxData( rxBuffStr );
+   ioeditL->putRxData( rxBuffStr );
 }
 void VisaReg::onRxRespTestReadCmpl(QByteArray& rxdata) {
    /** First of all, disconnect this slot from readyRead() driver signal */
@@ -988,7 +988,7 @@ void VisaReg::onRxRespTestReadCmpl(QByteArray& rxdata) {
    Q_INFO << "was called with rxdata (hxed): " << rxdata.toHex();
 
    QString rxBuffStr = driver->rxBuffReq.data.toHex();
-   ioedit->putRxData( rxBuffStr );
+   ioeditL->putRxData( rxBuffStr );
    //   driver->rxCircular();
 }
 void VisaReg::onRxRespDvmCmpl(QByteArray& rxdata) {
@@ -1021,7 +1021,7 @@ void VisaReg::onRxRespCalibData(QByteArray& rxdata) {
    //   Q_INFO << calc->eepromRx;
 
    QString rxBuffStr = rxdata.toHex();
-   ioedit->putRxData( rxBuffStr );
+   ioeditL->putRxData( rxBuffStr );
 
    /**
     * Now we can correct the H(i) hardware dependent factors. Emitting signal

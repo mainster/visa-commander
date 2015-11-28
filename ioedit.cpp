@@ -10,7 +10,7 @@
 
 
 /**
- * Forward declaration of class IOEdit is ok since this is the implementation
+ * Forward declaration of class ioeditLis ok since this is the implementation
  * file of IOEdit
  */
 class IOEdit;
@@ -18,39 +18,43 @@ class IOEdit;
 #define SETFONT
 #undef SETFONT
 
+//static struct {
+//   static IOEdit *instL, *instR;
+//} instances;
 
-IOEdit* IOEdit::inst = NULL;
+IOEdit * IOEdit::ioeditL = 0x00;
+IOEdit * IOEdit::ioeditR = 0x00;
 
 /** RINGBUFFER */
 const IOEdit::HTMLcode IOEdit::html = { 
-                                        "<font color=\"Red\"><b>",
-                                        "<font color=\"Red\">",
-                                        "<font color=\"Gray\">",
-                                        "<font color=\"Yellow\">",
-                                        "<b style=\"color: #000000; background-color: #c0c0c0\">@@@REPLACE</b>",
-                                        //    "</font><br><",
-                                        "</font>",
-                                        "<font color=\"White\"><b>",
-                                        "<br>",
-                                        "<b style=\"color: #%RGB\">",
+   "<font color=\"Red\"><b>",
+   "<font color=\"Red\">",
+   "<font color=\"Gray\">",
+   "<font color=\"Yellow\">",
+   "<b style=\"color: #000000; background-color: #c0c0c0\">@@@REPLACE</b>",
+   //    "</font><br><",
+   "</font>",
+   "<font color=\"White\"><b>",
+   "<br>",
+   "<b style=\"color: #%RGB\">",
 
-                                      };
+};
 const IOEdit::visaSeqences IOEdit::vseq =  { 
-                                             "00000046706700",                                           //< STARTSEQ
-                                             "040001620100057200000000000002be15000047e0",               //< STDBY
-                                             "04000162",                                                 //< STDBYSML
-                                             "040001620100057200000000000002be15020047e0",               //< STDBY_POWERON
-                                             "03000162500002be15020047e0",                               //< STDBY_SCOPE Fenster offen aber kein trigger
-                                             "0200026000d81000ec",                                       //< STDBY_SCOPE Fenster offen mit auto trigger
-                                             "060009700800f205074cf20520000e500000000001c0001770000000000000086201470000ea000e3d000162410002be15020047e0",   //< SCOPEON
-                                             "0500018a010001620100057200000000000002be15000047e0",       //< VDCON
-                                             "0500018a000001620100057200000000000002be15000047e0",       //< VDCOFF
-                                             "0500018b420001620100057200000000000002be15000047e0",       //< VADCON
-                                             "0500018b000001620100057200000000000002be15000047e0",       //< VADCOFF
-                                             "05000f3004830a657fff031100369d030000000001620100057200000000000002be15000047e0",   //< FUGENON
-                                             "05000f30000007ff00000000000000000000000001620100057200000000000002be15000047e0",   //< FUGENOFF
-                                             "05000880065800B400000C830001620100057200000000000002BE30020047E0",  //< POSPOWEREN
-                                           };
+   "00000046706700",                                           //< STARTSEQ
+   "040001620100057200000000000002be15000047e0",               //< STDBY
+   "04000162",                                                 //< STDBYSML
+   "040001620100057200000000000002be15020047e0",               //< STDBY_POWERON
+   "03000162500002be15020047e0",                               //< STDBY_SCOPE Fenster offen aber kein trigger
+   "0200026000d81000ec",                                       //< STDBY_SCOPE Fenster offen mit auto trigger
+   "060009700800f205074cf20520000e500000000001c0001770000000000000086201470000ea000e3d000162410002be15020047e0",   //< SCOPEON
+   "0500018a010001620100057200000000000002be15000047e0",       //< VDCON
+   "0500018a000001620100057200000000000002be15000047e0",       //< VDCOFF
+   "0500018b420001620100057200000000000002be15000047e0",       //< VADCON
+   "0500018b000001620100057200000000000002be15000047e0",       //< VADCOFF
+   "05000f3004830a657fff031100369d030000000001620100057200000000000002be15000047e0",   //< FUGENON
+   "05000f30000007ff00000000000000000000000001620100057200000000000002be15000047e0",   //< FUGENOFF
+   "05000880065800B400000C830001620100057200000000000002BE30020047E0",  //< POSPOWEREN
+};
 /** RINGBUFFER END */
 
 /*!
@@ -162,7 +166,6 @@ IOEdit::IOEdit(quint64 maxChars, QWidget *parent)
 
    parser.frmHeadItalic = true;
    parser.enabled       = false;
-
 }
 /*!
  \brief
@@ -321,7 +324,7 @@ void IOEdit::putRxDataSniff(QString &data,
    else {
       insertPlainText(data);
    }
-   /** Check if max. chars for ioedit is reached and emit signal */
+   /** Check if max. chars for ioeditLis reached and emit signal */
    if( (byteWatch.numChars += data.length()) > byteWatch.maxChars )
       emit maxCharCountReached();
 
@@ -397,7 +400,7 @@ void IOEdit::putRxData(QString &data,
    else {
       insertPlainText(data);
    }
-   /** Check if max. chars for ioedit is reached and emit signal */
+   /** Check if max. chars for ioeditLis reached and emit signal */
    if( (byteWatch.numChars += data.length()) > byteWatch.maxChars )
       emit maxCharCountReached();
 
@@ -429,8 +432,8 @@ void IOEdit::putInfoLine(const QString cline,
    if (! prefix.isEmpty())
       HTML_INFO_LINE_MOD.replace("%PREFIX", prefix/* + "INFO"*/);
 
-//   if (line.length() > (line.remove(" ")).length())
-//      Q_INFO << tr("Whitespace truncated!");
+   //   if (line.length() > (line.remove(" ")).length())
+   //      Q_INFO << tr("Whitespace truncated!");
 
    if ( nChar ) {
       lline = line.split( colSep );
@@ -920,12 +923,12 @@ QString IOEdit::payloadMod(QByteArray pla) {
    return s;
 }
 
-//QTextStream &IOEdit::operator <<(QTextStream &outStream, const IOEdit &ioed) {
+//QTextStream &IOEdit::operator <<(QTextStream &outStream, const ioeditL&ioed) {
 //   qDebug() << outStream;
 //   return outStream;
 //}
 
-//QString &IOEdit::operator<<(QString &strOut/*, const IOEdit &ioedit*/) {
+//QString &IOEdit::operator<<(QString &strOut/*, const ioeditL&ioedit*/) {
 //   this->putInfoLine( strOut );
 //}
 

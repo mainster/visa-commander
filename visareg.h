@@ -475,11 +475,11 @@ private:
    //*/
    QTimer *timReqTimeout;
    QByteArray *txStr, *rxStr;
-   /*static*/ QVector<trxQue_t> trxQue;
+   QVector<trxQue_t> trxQue;
    static VisaReg *inst;
    Visa     *visa;
    Driver   *driver;
-   IOEdit   *ioedit;
+   IOEdit   *ioeditL, *ioeditR;
    Calc     *calc;
 
 };

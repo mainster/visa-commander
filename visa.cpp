@@ -27,7 +27,12 @@
 #define hardware_xxx_dat QString("/opt/Visatronic/visascope-3.1/share/" \
    "hardware_values/hardware_137000.dat")
 
+#define GEOM   tr("/widgetGeometry")
+#define STAT   tr("/windowState")
+
 const int Visa::MAX_CONSOLE_CHARS = 8000;
+
+QTableWidget * Visa::pTw = 0;
 
 /**
  * Initialize structs that holds visa scope sequences,
@@ -87,16 +92,14 @@ Visa::Visa(QWidget *parent) :
    newParent = parent;
 
    QSETTINGS;
-   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
-                             MAX_CONSOLE_CHARS).toInt();
    le8a8bForm = Visa::form_bin;
 
    /** Create instances */
    driver   = Driver::getInstance();
    calc     = Calc::getInstance();
 
-   ioedit   = IOEdit::getInstance(maxcfg, this);
-   ioeditR  = new IOEdit(maxcfg, this);
+   ioeditL  = IOEdit::getInstance(location_Left, this);
+   ioeditR  = IOEdit::getInstance(location_Right, this);
    visareg  = new VisaReg(this);
 
    fugen    = 0x00;
@@ -125,21 +128,16 @@ Visa::Visa(QWidget *parent) :
    //< Init the reload register for time division
    sniffTim->reload(0);
 #endif
-   //   /** Refresh timer, update the footer infos periodically */
-   //   timRefresh  = new QTimer();
-   //   timRefresh->setInterval(int( T_REFRESH * 1e3 ));
-
-   /** Custom / User sequence timer. Periodically repeats the transmission
-    * of an user / custom entered seq (ui lineedit) */
-   timUserSeq  = new QTimer();
 
    /** Embedd the ioedit's instance widget into visa window */
-   QLayout *glout; QV
-   glout = ui->frame->layout();
-   glout->replaceWidget(ui->dummy, this->ioedit);
-   ui->frame->setLayout( glout );
-   ui->dummy->setVisible(false);
-   delete ui->dummy;
+   ui->splIOEd->addWidget( this->ioeditL );
+   ui->splIOEd->addWidget( this->ioeditR );
+
+   /**
+    * Custom / User sequence timer. Periodically repeats the transmission
+    * of an user / custom entered seq (ui lineedit)
+    */
+   timUserSeq  = new QTimer();
 
    /** Create the initial connections for the ui action objects */
    initActionsConnections();
@@ -157,10 +155,10 @@ Visa::Visa(QWidget *parent) :
    connect( ui->btnResCharCnts, SIGNAL(clicked()),
             driver,           SLOT(  clearRxBuffReqByteCnt()  ));
 
-   connect( ioedit,           SIGNAL(syncedReqBuffWasted()),
+   connect( ioeditL,           SIGNAL(syncedReqBuffWasted()),
             driver,           SLOT(  flushSyncedReqBuff()  ));
 
-   connect( ioedit,           SIGNAL(syncedBuffWasted()),
+   connect( ioeditL,           SIGNAL(syncedBuffWasted()),
             driver,           SLOT(  flushSyncedBuff()  ));
 
    connect( driver->serial,   SIGNAL(baudRateChanged(
@@ -206,13 +204,18 @@ Visa::Visa(QWidget *parent) :
    /** Start program heartbeat */
    hbeat->tim->start();
 
+
+   pTw = ui->tableWidget;
+
+
    this->installEventFilter( this );
 }
 
 Visa::~Visa() {
    QSETTINGS;
-   config.setValue("Visa/WindowMainWindow", saveGeometry());
-   config.setValue("Visa/WindowState", saveState());
+   config.setValue(objectName() + GEOM, saveGeometry());
+   config.setValue(objectName() + STAT, saveState());
+
    delete ui;
 }
 
@@ -278,7 +281,7 @@ void Visa::initActionsConnections() {
    connect( ui->actionQuit,         SIGNAL(triggered()),
             this,                   SLOT(  closeChildsAlso()  ));
    connect( ui->actionClear,        SIGNAL(triggered()),
-            ioedit,                 SLOT(  clear()  ));
+            ioeditL,                 SLOT(  clear()  ));
    connect( ui->actionAbout,        SIGNAL(triggered()),
             this,                   SLOT(  about()  ));
 //   connect( ui->actionSendSine,     SIGNAL(triggered()),
@@ -286,7 +289,7 @@ void Visa::initActionsConnections() {
    connect( ui->actionRegisters,    SIGNAL(triggered()),
             this,                   SLOT(  onActionRegistersOverview()  ));
    connect( ui->actionSaveConfig,   SIGNAL(triggered()),
-            ioedit,                 SLOT(  savePersistanceSettings()  ));
+            ioeditL,                 SLOT(  savePersistanceSettings()  ));
    connect( ui->actionAboutQt,      SIGNAL(triggered()),
             qApp,                   SLOT(  aboutQt()  ));
    connect( ui->actionHideFramehead,   SIGNAL(toggled(bool)),
@@ -298,11 +301,11 @@ void Visa::initActionsConnections() {
 
    //<<<<<<<<<<<<<<<<<<<<     Parser     >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
    connect( ui->actionParserEnable, SIGNAL(triggered(bool)),
-            ioedit,                 SLOT(  setParserActive(bool)  ));
+            ioeditL,                 SLOT(  setParserActive(bool)  ));
    connect( ui->actionFull_Ruler,   SIGNAL(triggered(bool)),
-            ioedit,                 SLOT(  setParserFullRuler(bool)  ));
+            ioeditL,                 SLOT(  setParserFullRuler(bool)  ));
    connect( ui->actionNo_Ruler,     SIGNAL(triggered(bool)),
-            ioedit,                 SLOT(  setParserNoRuler(bool)  ));
+            ioeditL,                 SLOT(  setParserNoRuler(bool)  ));
 
    connect( ui->actionChildsToDbg,  SIGNAL(triggered()),
             this,                   SLOT(childsToDbg()));
@@ -318,6 +321,10 @@ void Visa::initActionsConnections() {
 
    connect( ui->actionFuGen,        SIGNAL(triggered(bool)),
             this,                   SLOT(onActFuGenTriggered(bool)));
+   connect( ui->actionSaveAllGeometrys,   SIGNAL(triggered()),
+            this,                         SLOT(saveAllGeometrys()));
+   connect( ui->actionRestoreAllGeometrys,SIGNAL(triggered()),
+            this,                         SLOT(restoreAllGeometrys()));
 
    ui->actionParserEnable->setChecked(false);
    ui->actionFull_Ruler->setChecked(false);
@@ -418,11 +425,11 @@ void Visa::on_btnOutputsOnOff_clicked(bool checked) {
    Q_UNUSED(checked);
    QString st;
    st = ui->cbRepeatCustSeq->currentText();
-   //   ioedit->putInfoLines(st);
+   //   ioeditL->putInfoLines(st);
 
 }
 void Visa::onBtnLoadSinClicked() {
-   ioedit->putInfoLine(
+   ioeditL->putInfoLine(
             tr("SinToRam() functionality has moved"
                "to class FuGen:: at 27-10-2015!"));
 }
@@ -600,8 +607,8 @@ void Visa::onBtnOutputsOnOffClicked() {
 
 }
 void Visa::onActSnapShotTriggered() {
-   //   qDebug() << ioedit->getCurrentTextBlocks();
-   FileBackup::toFilesys( ioedit->getCurrentTextBlocks(), "test1");
+   //   qDebug() << ioeditL->getCurrentTextBlocks();
+   FileBackup::toFilesys( ioeditL->getCurrentTextBlocks(), "test1");
 }
 void Visa::onBtn8a8bClicked() {
    bool ok = 0;
@@ -638,7 +645,6 @@ void Visa::onLe8a8bChanged(QString str) {
    ui->le8a8b->setText( str );
 }
 void Visa::onActPowerTriggered(bool onoff) {
-#define GEOM   tr("/geometry")
    QSETTINGS;
 
    (pwr == 0x00)
@@ -661,7 +667,6 @@ void Visa::setSnifferTimEnabled(bool onoff) {
    sniffTim->setEnabled(onoff);
 }
 void Visa::onActFuGenTriggered(bool onoff) {
-#define GEOM   tr("/geometry")
    QSETTINGS;
 
    (fugen == 0x00)
@@ -678,13 +683,52 @@ void Visa::onActFuGenTriggered(bool onoff) {
 }
 
 /* ======================================================================== */
+/*                     Child Events                                         */
+/* ======================================================================== */
+void Visa::onChildWidgetDestroyed(QObject *died) {
+   QProcess process;
+   process.start("notify-send",
+                 QStringList() << "-t3000"
+                 << "Object destroyed" << died->objectName());
+
+   Dvm   *ddvm  = static_cast<Dvm *>(died);
+   Power *dpwr  = static_cast<Power *>(died);
+   FuGen *dfgen = static_cast<FuGen *>(died);
+
+   if (! (ddvm && dpwr && dfgen)) {
+      QMessageBox::warning(this, "Object destroyed",
+                           "No static cast possible to identify the died"
+                           "object..." + died->objectName());
+      return;
+   }
+
+   if (ddvm) {
+      ui->actionOpenDvm->setChecked( false );
+      return;
+   }
+
+   if (dpwr) {
+      ui->actionPower->setChecked( false );
+      return;
+   }
+
+   if (dfgen) {
+      ui->actionFuGen->setChecked( false );
+      return;
+   }
+
+}
+
+/* ======================================================================== */
 /*                     Serial port driver slots                             */
 /* ======================================================================== */
 void Visa::onSerialBaudChanged(qint32 baud,
                                QSerialPort::Directions dir) {
-   /**< Port baudrate */
    Q_UNUSED(dir);
-   QTextCursor cursor( ui->teStateFooter->textCursor());
+
+//   ui->statusBar->showMessage();
+
+   QTextCursor cursor( ui->statusBar->getTeStat()->textCursor() );
    //   ui->teStateFooter->setCursorWidth(50);
    cursor.setPosition(35, QTextCursor::KeepAnchor);
    cursor.setCharFormat(formatLHS);
@@ -747,7 +791,10 @@ void Visa::onDriverPortDisconnected() {
    //   timHbeat->stop();
 }
 void Visa::footerUpdate(PortDialog::Settings p) {
-   QTextCursor cursor( ui->teStateFooter->textCursor());
+
+//   QTextCursor cursor( this->teStat->textCursor());
+   QTextCursor cursor( ui->statusBar->getTeStat()->textCursor() );
+
    cursor.setPosition(0, QTextCursor::KeepAnchor);
    /*
      * Port Mode
@@ -858,6 +905,7 @@ char *Visa::convert(QString in) {
  * Public slot that calls the destructor
  */
 void Visa::quit() {
+   saveAllGeometrys();
    delete this;
 }
 void Visa::closeChildsAlso() {
@@ -866,8 +914,7 @@ void Visa::closeChildsAlso() {
    if ( dvmDc ) {
       if ( dvmDc->dvmHasType == dvmType_DC ) {
          QString cfgType = tr("DvmDc");
-         config.setValue(cfgType + "/geometry", dvmDc->saveGeometry());
-         //         delete dvmDc;
+         config.setValue(cfgType + GEOM, dvmDc->saveGeometry());
          dvmDc->close();
       }
    }
@@ -875,23 +922,20 @@ void Visa::closeChildsAlso() {
    if ( dvmAcDc ) {
       if ( dvmAcDc->dvmHasType == dvmType_ACDC ) {
          QString cfgType = tr("DvmAcDc");
-         config.setValue(cfgType + "/geometry", dvmAcDc->saveGeometry());
-         //         delete dvmAcDc;
+         config.setValue(cfgType + GEOM, dvmAcDc->saveGeometry());
          dvmAcDc->close();
       }
    }
 
    if ( pwr ) {
-      config.setValue(pwr->objectName() + "/geometry",
+      config.setValue(pwr->objectName() + GEOM,
                       pwr->saveGeometry());
-      //      delete pwr;
       pwr->close();
    }
 
    if ( fugen ) {
-      config.setValue(fugen->objectName() + "/geometry",
+      config.setValue(fugen->objectName() + GEOM,
                       fugen->saveGeometry());
-      //      delete fugen;
       fugen->close();
    }
 
@@ -918,6 +962,7 @@ void Visa::about() {
 }
 void Visa::footerFormatInit() {
 
+   return;
    /** Check if driverSettings parameter is != NULL else exit.
     */
    //   if (driverSettings == NULL)   return;
@@ -926,8 +971,9 @@ void Visa::footerFormatInit() {
    //< Refresh state footer text
    /// Move cursor to end of current text instead of jusing methode .append (nonewline)
    //   QTextCursor cursor( ui->teStateFooter->textCursor());
-   ui->teStateFooter->setText("________________________________________"
-                              "________________________________________");
+   /*ui->teStateFooter-*/
+   this->teStat->setText("________________________________________"
+                         "________________________________________");
    /// Save default format setting
    formatDefault.fontWeight();
    formatDefault.foreground();
@@ -1008,10 +1054,15 @@ void Visa::footerFormatInit() {
 #define FOLDINGEND }
 }
 void Visa::footerRefreshVisa() {
+
+   return;
+
    ///< Refresh info from visa uc - footer text
    ///< Move cursor to end of current text instead of jusing methode .append (nonewline)
    QTextCursor cursor;
-   cursor = ui->teVisaInfo->textCursor();
+
+//   cursor = ui->teVisaInfo->textCursor();
+   cursor = this->teStat->textCursor();
    QTextCharFormat formatDefault,  //< Object to store default format settings
          formatRHS,      //< Object to store format settings of LHS strings
          formatTimeout;  //< Object to store format settings of Timeout
@@ -1028,7 +1079,8 @@ void Visa::footerRefreshVisa() {
    formatTimeout.setBackground(QBrush(QColor(240, 0, 0)));
 
    /**< Clear and refresh */
-   ui->teVisaInfo->clear();
+//   ui->teVisaInfo->clear();
+   this->teStat->clear();
    /**< uc firmware */
    cursor.setCharFormat(formatDefault);
    cursor.insertText("uP FW: ");
@@ -1265,12 +1317,40 @@ void Visa::keyPressEvent(QKeyEvent *event) {
       }
    }
 }
+void Visa::saveAllGeometrys() {
+   QSETTINGS;
+   config.setValue(ui->splIOEd->objectName() + STAT,
+                   ui->splIOEd->saveState() );
+   config.setValue(ui->splCent->objectName() + STAT,
+                   ui->splCent->saveState() );
+
+   config.setValue(this->objectName() + GEOM,
+                   this->saveGeometry() );
+   config.setValue(this->objectName() + STAT,
+                   this->saveState() );
+
+}
+void Visa::restoreAllGeometrys() {
+   QSETTINGS;
+   ui->splIOEd->restoreState(
+            config.value(ui->splIOEd->objectName() + STAT, "").toByteArray());
+   ui->splCent->restoreState(
+            config.value(ui->splCent->objectName() + STAT, "").toByteArray());
+
+   restoreGeometry(config.value(objectName() + GEOM, "").toByteArray());
+   restoreState(config.value(objectName() + STAT, "").toByteArray());
+
+}
+void Visa::showEvent(QShowEvent *) {
+   restoreAllGeometrys();
+}
 void Visa::closeEvent(QCloseEvent *) {
+   saveAllGeometrys();
+
    QList<QAction *> mwActs =
          qApp->findChildren<QAction *>( );
 
    QList<QWidget *> widgets = parentWidget()->findChildren<QWidget *>();
-
    Q_INFO << widgets;
 
    foreach (QAction *act, mwActs) {

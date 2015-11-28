@@ -25,6 +25,8 @@ Dvm* Dvm::instAcDc = 0;
 Dvm::Dvm(const DvmTypes type, QWidget *parent) :
    QDockWidget(parent),
    ui(new Ui::Dvm) {
+   this->setAttribute(Qt::WA_DeleteOnClose);
+
    ui->setupUi(this);
 
    waitForDvmUi = true;
@@ -36,7 +38,7 @@ Dvm::Dvm(const DvmTypes type, QWidget *parent) :
 
    vr       = VisaReg::getInstance();
    driver   = Driver::getInstance();
-   //   ioedit   = IOEdit::getInstance();
+   //   ioeditL  = IOEdit::getInstance();
 
    QSETTINGS;
 
@@ -62,6 +64,10 @@ Dvm::Dvm(const DvmTypes type, QWidget *parent) :
    /*                      Connect callbacks                           */
    /* ---------------------------------------------------------------- */
    connectSignalSlots();
+
+   connect( this,       SIGNAL(destroyed(QObject*)),
+            visa,       SLOT(onChildWidgetDestroyed(QObject*)));
+
    /* ---------------------------------------------------------------- */
 
    dvmConf->enabled = false;
@@ -188,12 +194,12 @@ void Dvm::onBtnCfgRecClicked() {
    QByteArray retRaw;
    tmp.remove(" ");
    retRaw.append( visa->convert( tmp ), tmp.length()/2 );
-   //   IOEdit *ioedit = IOEdit::getObjectPtr();
+   //   ioeditL*ioeditL= IOEdit::getObjectPtr();
    Driver *driver = Driver::getObjectPtr();
    driver->rxBuffReq.expectedByteCount = 0x47;
    driver->writeData(retRaw);
 
-   //   ioedit->putTxData( tmp );
+   //   ioeditL->putTxData( tmp );
 }
 /*!
  \brief

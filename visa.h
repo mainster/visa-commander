@@ -4,6 +4,8 @@
 #include <QMainWindow>
 #include <QStringListModel>
 #include <QTextCharFormat>
+#include <QTextEdit>
+#include <QTableWidget>
 
 #include "globals.h"
 #include "portdialog.h"
@@ -171,6 +173,7 @@ public:
    Q_DECLARE_FLAGS(LEDs, visaLED)
 
    static infoFromVisascope visaInfo;
+   static QTableWidget *pTw;
 
    explicit Visa(QWidget *parent = 0);
    static Visa *getInstance(QWidget *parent/* = 0*/) {
@@ -250,8 +253,12 @@ public slots:
    void setUiPeriodicReqChecked(bool b);
    void onActFuGenTriggered(bool onoff);
    void keyPressEvent(QKeyEvent *);
-
+   void showEvent(QShowEvent *);
    void closeEvent(QCloseEvent *);
+   void restoreAllGeometrys();
+   void saveAllGeometrys();
+   void onChildWidgetDestroyed(QObject *died);
+
 protected:
    void initActionsConnections();
 
@@ -270,10 +277,11 @@ private:
 
    MQTimer_t *hbeat, *sniffTim;
    QString  txStr;
+   QTextEdit *teStat;
 
    Register *regFrm;
    Driver   *driver;
-   IOEdit   *ioedit, *ioeditR;
+   IOEdit   *ioeditL, *ioeditR;
    VisaReg  *visareg;
    Dvm      *dvmDc, *dvmAcDc;
    FuGen    *fugen;

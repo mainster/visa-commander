@@ -21,6 +21,14 @@ class Driver;
 
 #define MIN_FRAMESIZE 50        //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
+enum IOEditLoc {
+   location_Left,
+   location_Center,
+   location_Right,
+};
+Q_DECLARE_FLAGS(IOEditLocs, IOEditLoc)
+
+
 
 class IOEdit : public QPlainTextEdit {
    Q_OBJECT
@@ -85,16 +93,49 @@ public:
    };
    Q_DECLARE_FLAGS(doWhitespChars, doWhitespChar)
 
-   explicit IOEdit(quint64 maxChars = 0,
-                   QWidget *parent = 0);
-   static IOEdit* getInstance(quint64 maxChars, QWidget *parent/* = 0*/) {
-      if (inst == 0x00)
-         inst = new IOEdit(maxChars, parent);
-      return inst;
+#define QFOLDINGSTART {
+
+//   static IOEdit* getInstance(quint64 maxChars, QWidget *parent) {
+//      if (inst == 0x00)
+//         inst = new IOEdit(maxChars, parent);
+//      return inst;
+//   }
+//   static IOEdit* getObjectPtr() {
+//      return inst;
+//   }
+#define QFOLDINGEND }
+   explicit IOEdit(quint64 maxChars = 0, QWidget *parent = 0);
+   static IOEdit* getInstance(IOEditLocs loc = location_Left,
+                              QWidget *parent = 0) {
+
+      if (loc == location_Left) {
+         if (ioeditL == 0x00)
+            ioeditL = new IOEdit(0, parent);
+
+         return ioeditL;
+      }
+
+      if (loc == location_Right) {
+         if (ioeditR == 0x00)
+            ioeditR = new IOEdit(0, parent);
+
+         return ioeditR;
+      }
+
+      Q_INFO << tr("bad location selected!");
+      return 0;
    }
-   static IOEdit* getObjectPtr() {
-      return inst;
+   static IOEdit* getObjectPtr(IOEditLocs loc = location_Left) {
+      if (loc == location_Left)
+         return ioeditL;
+
+      if (loc == location_Right)
+         return ioeditR;
+
+      Q_INFO << tr("bad location selected!");
+      return 0;
    }
+
    ~IOEdit();
 
    int mouseWheelCnt;
@@ -159,7 +200,10 @@ public slots:
 
 private:
    QFont fontTxLines, fontRxLines;
-   static IOEdit * inst;
+
+   static IOEdit *ioeditL, *ioeditR;
+
+
    Driver * driver;
    qint64 rxCtr;
 

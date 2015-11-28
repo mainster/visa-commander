@@ -30,6 +30,7 @@ FuGen::FuGen(QWidget *parent) :
    QDockWidget(parent),
    ui(new Ui::FuGen) {
    ui->setupUi(this);
+   this->setAttribute(Qt::WA_DeleteOnClose);
 
    DVAMP_PER_TICK = (VAMP_MAX - VAMP_MIN)/ VAMP_MAX_TICKS,
          DFOUT_PER_TICK = (FOUT_MAX - FOUT_MIN)/ FOUT_MAX_TICKS;
@@ -41,7 +42,8 @@ FuGen::FuGen(QWidget *parent) :
    genCfg = new FuGen::genCfg_t();
 
    vr       = VisaReg::getObjectPtr();
-   ioedit   = IOEdit::getObjectPtr();
+
+   ioeditL  = IOEdit::getObjectPtr();
    visa     = Visa::getObjectPtr();
 
    initUiElements();
@@ -54,6 +56,8 @@ FuGen::FuGen(QWidget *parent) :
             this,             SLOT(onConfigChangeTriggered(int)));
    connect( ui->cbNoiseType,  SIGNAL(currentIndexChanged(int)),
             this,             SLOT(onConfigChangeTriggered(int)));
+   connect( this,             SIGNAL(destroyed(QObject*)),
+            visa,             SLOT(onChildWidgetDestroyed(QObject*)));
 
    vr->hwRegs.push_back( vr->regFgenOut );
    vr->hwRegs.push_back( vr->regFgenFreq );
@@ -79,9 +83,9 @@ void FuGen::initUiElements() {
 }
 void FuGen::onBtnOnOffClicked() {
 
-   IOEdit *ioedit = IOEdit::getObjectPtr();
+   ioeditL= IOEdit::getObjectPtr();
 
-   ioedit->putInfoLine("Output off");
+   ioeditL->putInfoLine("Output off");
 
 }
 void FuGen::onConfigChangeTriggered(int idx) {
@@ -219,7 +223,7 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    QWidget *widget = qApp->widgetAt(QCursor::pos());
    QString widName = widget->objectName();
 #ifdef WHEELEVENT_OBJECT_NAME
-   ioedit->putInfoLine( widName + " " + QString::number(mouseWheelCnt));
+   ioeditL->putInfoLine( widName + " " + QString::number(mouseWheelCnt));
 #endif
    /**
     * Check if the mouse pointer points to one of the lcd widgets from supply
@@ -230,7 +234,7 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    if (ui->btnLock->isChecked())
       return;
 
-   ioedit->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
+   ioeditL->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
 
    if (widName.contains( ui->lcdFreq->objectName() ))
       genCfg->convLCD2freq( event->delta()/(DIV), FuGen::type_increment );
@@ -243,7 +247,7 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
             genCfg->convLCD2offs( event->delta()/(DIV), FuGen::type_increment );
          else {
             Q_INFO << tr("Wheel event can't be mapped to an lcd widget");
-            ioedit->putInfoLine(
+            ioeditL->putInfoLine(
                      tr("Wheel event can't be mapped to a lcd widget") );
          }
 
@@ -259,7 +263,7 @@ void FuGen::fillTxReg() {
 
    QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
    visa->gs.fuGenCfgAltered = false;
-   ioedit->putTxData( ret );
+   ioeditL->putTxData( ret );
 }
 
 /*!
@@ -321,8 +325,9 @@ long FuGen::genCfg_t::convLCD2amp(double dVamp, FuGen::add_type type) {
    IODEBUG << "Amp.float_" << QString::number( Amp.float_ )
            << "Amp.reg16_" << QString::number( Amp.reg16_ );
    str = IODEBUG.join(" ");
-   IOEdit *ioedit = IOEdit::getObjectPtr();
-   ioedit->putInfoLine( str );
+
+   IOEdit * ioeditR = IOEdit::getObjectPtr(location_Right);
+   ioeditR->putInfoLine( str );
 
    return (long) Amp.reg16_;
 }
@@ -358,8 +363,8 @@ long FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
    IODEBUG << "Freq.float_" << QString::number( Freq.float_ )
            << "Freq.reg32_" << QString::number( Freq.reg32_ );
    str = IODEBUG.join(" ");
-   IOEdit *ioedit = IOEdit::getObjectPtr();
-   ioedit->putInfoLine( str );
+   IOEdit * ioeditR = IOEdit::getObjectPtr(location_Right);
+   ioeditR->putInfoLine( str );
 
    return (long) Freq.reg32_;
 }
@@ -399,8 +404,12 @@ long FuGen::genCfg_t::convLCD2offs(double dVoffs, FuGen::add_type type) {
       return -1;
    }
 
-   qDebug().noquote() << "Offs.float_" << Offs.float_
-                      << " Offs.reg16_" << Offs.reg16_;
+   QStringList IODEBUG; QString str;
+   IODEBUG << "Offs.float_" << QString::number( Offs.float_ )
+           << "Offs.reg32_" << QString::number( Offs.reg16_ );
+   str = IODEBUG.join(" ");
+   IOEdit * ioeditR = IOEdit::getObjectPtr(location_Right);
+   ioeditR->putInfoLine( str );
 
    return (long) Offs.reg16_;
 }

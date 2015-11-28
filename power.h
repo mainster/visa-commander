@@ -214,7 +214,7 @@ private:
    QTimer      *timCycl;
    int         mouseWheelCnt;
    VisaReg     *vr;
-   IOEdit      *ioedit ;
+   IOEdit      *ioeditL;
    Visa        *visa;
    MQTimer_t   *autoLock, *focGuard;
    QStringList focusOkObj;

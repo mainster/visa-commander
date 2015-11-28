@@ -34,15 +34,13 @@ Driver::Driver(QString eolPatt, bool newLine,
    QObject(parent) {
    QSETTINGS;
 
-   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
-                             Visa::MAX_CONSOLE_CHARS).toInt();
 
    MIN_FRAME_SIZE_VAR = config.value("ReadOnly/MIN_FRAME_SIZE",
                                      MIN_FRAMESIZE).toInt();
 
    serial = new QSerialPort();
    settings = new PortDialog();
-   ioedit   = IOEdit::getInstance(maxcfg, parent);
+   ioeditL  = IOEdit::getInstance(location_Left, parent);
 
 
    /////////////////////////////////////
@@ -123,7 +121,7 @@ int Driver::writeData(const QByteArray &data, bool putToConsole) {
       //      serial->flush();
    }
    else {
-      ioedit->putTxData( "serial->isOpen() returns FALSE" );
+      ioeditL->putTxData( "serial->isOpen() returns FALSE" );
       return -1;
    }
    if (putToConsole) {
@@ -132,8 +130,8 @@ int Driver::writeData(const QByteArray &data, bool putToConsole) {
          ba = data.toHex();
 //         ba.append( visa->convert(data), data.length()/2 );
 
-         QString s = ioedit->payloadDiff( ba, last, QColor(Qt::yellow));
-         ioedit->putTxData( /*data.toHex()*/s );
+         QString s = ioeditL->payloadDiff( ba, last, QColor(Qt::yellow));
+         ioeditL->putTxData( /*data.toHex()*/s );
          last = ba;
       }
    }
@@ -159,10 +157,10 @@ void Driver::onCheckRespCmpl() {
     * zero rx bytes are expected. This seems to be an error state!
     */
    if (! rxBuffReq.expectedByteCount) {
-      ioedit->putInfoLine(tr("onCheckResp Cmpl() accessed but"
+      ioeditL->putInfoLine(tr("onCheckResp Cmpl() accessed but"
                              "rxBuffReq.expectedByteCount == 0!"));
       rxBuff.dataSync = QString(serial->readAll().toHex());
-      ioedit->putRxData(rxBuff.dataSync,
+      ioeditL->putRxData(rxBuff.dataSync,
                         IOEdit::ClearReferencedBuffer,
                         IOEdit::WhitespaceChars);
 
@@ -265,7 +263,7 @@ void Driver::ackResponseFrameError() {
 }
 void Driver::sniffReceived() {
 
-   ioedit->onSniffFilter();
+   ioeditL->onSniffFilter();
    return;
 
 #ifdef VERBOSITY_LVL_5
@@ -287,7 +285,7 @@ void Driver::sniffReceived() {
 
       if (cnt >= 2) {
          QString tmp = rxBuff.dataSync.left(rxBuff.dataSync.lastIndexOf( LF ));
-         ioedit->putRxDataSniff(tmp,
+         ioeditL->putRxDataSniff(tmp,
                            IOEdit::ClearReferencedBuffer,
                            IOEdit::WhitespaceChars);
       }

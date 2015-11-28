@@ -25,19 +25,25 @@ Power::Power(QWidget *parent) :
    QWidget(parent),
    ui(new Ui::Power) {
    ui->setupUi(this);
+   this->setAttribute(Qt::WA_DeleteOnClose);
 
    timCycl = new QTimer();
    timCycl->setInterval( INTERVAL_LCD * 1e3 );
    timCycl->start();
+
+   supply   = new Power::supply_t();
+   vr       = VisaReg::getObjectPtr();
+   ioeditL  = IOEdit::getObjectPtr();
+   visa     = Visa::getObjectPtr();
 
    focGuard       = new MQTimer_t();
    focGuard->tim  = new QTimer();
    focGuard->tim->setInterval(250);
    focGuard->reload( 10 );
    focGuard->setEnabled();
+
    connect( focGuard->tim, SIGNAL(timeout()),
             this,          SLOT(onfocGuard()));
-
    connect( timCycl,       SIGNAL(timeout()),
             this,          SLOT(onCyclic()));
    connect( ui->btnEnNeg,  SIGNAL(clicked()),
@@ -46,11 +52,8 @@ Power::Power(QWidget *parent) :
             this,          SLOT(onBtnEnPosClicked()));
    connect( qApp,          SIGNAL(focusChanged(QWidget*,QWidget*)),
             this,          SLOT(onAppFocusChanged(QWidget*,QWidget*)));
-   supply = new Power::supply_t();
-
-   vr       = VisaReg::getObjectPtr();
-   ioedit   = IOEdit::getObjectPtr();
-   visa     = Visa::getObjectPtr();
+   connect( this,          SIGNAL(destroyed(QObject*)),
+            visa,          SLOT(onChildWidgetDestroyed(QObject*)));
 
    vr->hwRegs.push_back( vr->regSetPwr );
 
@@ -137,7 +140,7 @@ void Power::wheelEvent ( QWheelEvent * event ) {
    QWidget *widget = qApp->widgetAt(QCursor::pos());
    QString widName = widget->objectName();
 #ifdef WHEELEVENT_OBJECT_NAME
-   ioedit->putInfoLine( widName + " " + QString::number(mouseWheelCnt));
+   ioeditL->putInfoLine( widName + " " + QString::number(mouseWheelCnt));
 #endif
    /**
     * Check if the mouse pointer points to one of the lcd widgets from supply
@@ -148,7 +151,7 @@ void Power::wheelEvent ( QWheelEvent * event ) {
    if (ui->btnLock->isChecked())
       return;
 
-   ioedit->putInfoLine( QString::number( event->delta()/(DIV) ));
+   ioeditL->putInfoLine( QString::number( event->delta()/(DIV) ));
 
    //   V_PER_DIG = ui->lineEdit->text().toInt();
 
@@ -165,7 +168,7 @@ void Power::wheelEvent ( QWheelEvent * event ) {
                supply->IminSet((int16_t) event->delta()/(DIV));
             else {
                Q_INFO << tr("Wheel event can't be mapped to an lcd widget");
-               ioedit->putInfoLine(
+               ioeditL->putInfoLine(
                         tr("Wheel event can't be mapped to a lcd widget") );
             }
 
@@ -190,7 +193,7 @@ void Power::fillTxReg() {
 
    QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
    visa->gs.powerCfgAltered = false;
-   ioedit->putTxData( ret );
+   ioeditL->putTxData( ret );
 
 }
 void Power::onAppFocusChanged(QWidget *old,

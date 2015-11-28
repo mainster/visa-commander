@@ -8,6 +8,12 @@
 #include <QFlag>
 #include <QFlags>
 #include <stdint.h>
+#include <qmath.h>
+#include <QString>
+
+#include "ioedit.h"
+#include "visa.h"
+#include "visareg.h"
 
 
 class Calc : public QObject {
@@ -82,9 +88,10 @@ private slots:
 
 private:
    static Calc * inst;  
-   class Visa        * visa;
-   class VisaReg     * visareg;
-   class IOEdit      * ioedit;
+   Visa        * visa;
+   VisaReg     * visareg;
+   IOEdit      *ioeditL, *ioeditR;
+
 
 //   QLocale     german;
 };

@@ -158,12 +158,13 @@ public slots:
    void sniffReceived();
 
 private:
-   QString portName;
-   MainWindow *mw;
+   MainWindow     *mw;
+   static Driver  *instance;
+   IOEdit         *ioeditL;
+   Visa           *visa;
+
+   QString        portName;
    int Baudrate;
-   static Driver *instance;
-   IOEdit *ioedit;
-   Visa *visa;
 };
 
 #endif // DRIVER_H
