@@ -40,7 +40,7 @@ Driver::Driver(QString eolPatt, bool newLine,
 
    serial = new QSerialPort();
    settings = new PortDialog();
-   ioeditL  = IOEdit::getInstance(location_Left, parent);
+   ioeditL  = IOEdit::getInstance(parent, location_Left);
 
 
    /////////////////////////////////////

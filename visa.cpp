@@ -119,8 +119,12 @@ Visa::Visa(QWidget *parent) :
    driver   = Driver::getInstance();
    calc     = Calc::getInstance();
 
-   ioeditL  = IOEdit::getInstance(location_Left, this);
-   ioeditR  = IOEdit::getInstance(location_Right, this);
+   ioeditL  = IOEdit::getInstance(this, location_Left);
+   ioeditR  = IOEdit::getInstance(this, location_Right);
+//   ioeditL = ui->ioeditL;
+//   ioeditR = ui->ioeditR;
+
+
    visareg  = new VisaReg(this);
 
    fugen    = 0x00;
@@ -150,9 +154,12 @@ Visa::Visa(QWidget *parent) :
    sniffTim->reload(0);
 #endif
 
-   /** Embedd the ioedit's instance widget into visa window */
+
+//   /** Embedd the ioedit's instance widget into visa window */
    ui->splIOEd->addWidget( this->ioeditL );
    ui->splIOEd->addWidget( this->ioeditR );
+
+
 
    /**
     * Custom / User sequence timer. Periodically repeats the transmission
@@ -231,7 +238,6 @@ Visa::Visa(QWidget *parent) :
 
    this->installEventFilter( this );
 }
-
 Visa::~Visa() {
    QSETTINGS;
    config.setValue(objectName() + GEOM, saveGeometry());
@@ -303,6 +309,8 @@ void Visa::initActionsConnections() {
             this,                   SLOT(  closeChildsAlso()  ));
    connect( ui->actionClear,        SIGNAL(triggered()),
             ioeditL,                 SLOT(  clear()  ));
+   connect( ui->actionClear,        SIGNAL(triggered()),
+            ioeditR,                 SLOT(  clear()  ));
    connect( ui->actionAbout,        SIGNAL(triggered()),
             this,                   SLOT(  about()  ));
 //   connect( ui->actionSendSine,     SIGNAL(triggered()),
@@ -347,6 +355,13 @@ void Visa::initActionsConnections() {
    connect( ui->actionRestoreAllGeometrys,SIGNAL(triggered()),
             this,                         SLOT(restoreAllGeometrys()));
 
+   connect( this,                   SIGNAL(uiCmdLineQuery(QString)),
+            this,                   SLOT(onUiCmdLineQuery(QString)));
+
+
+   connect( ui->actInitialRegStat,  SIGNAL(triggered()),
+            visareg,                SLOT(reqInitialRegState()));
+
    ui->actionParserEnable->setChecked(false);
    ui->actionFull_Ruler->setChecked(false);
    ui->actionNo_Ruler->setChecked(true);
@@ -355,13 +370,6 @@ void Visa::initActionsConnections() {
    ui->actionNo_Ruler->trigger();
 
 }
-/* @brief Visa::loadPersistance ?!
- * Call this method in the main frame constructor for configance
- * of widget settings. (Text values, slider states, button clicked...)
- *
- * \todo {  Implement "No configfile" or "Configfile not accessable"
- *          Message  }
- */
 bool Visa::loadPersistance() {
    QSETTINGS;
    config.beginGroup("Tab_UI_settings");  {
@@ -375,14 +383,6 @@ bool Visa::loadPersistance() {
    }
    return true;
 }
-/* @brief Visa::savePersistance
-* @param configFile
-*
-* Call this method at the end of the main frame destructor to store the
-* widget states in some where on the filesystem.
-*
-* \todo {  Implement a "Read only permission for Configfile" Message  }
-*/
 bool Visa::savePersistance() {
    /**
      * Save all user settings in a configuration file on the filesytem
@@ -405,9 +405,8 @@ bool Visa::savePersistance() {
    }
    return true;
 }
-
 /* ======================================================================== */
-/*                     Heartbeat                                            */
+/*                     timer slots                                          */
 /* ======================================================================== */
 void Visa::onTimHbeatTimeout() {
    /**
@@ -429,16 +428,11 @@ void Visa::onTimHbeatTimeout() {
        ! ui->actionNoStandbyDbgOut->isChecked())
       qDebug() << QTime::currentTime();
 }
-
-/* ======================================================================== */
-/*                     timer slots                                          */
-/* ======================================================================== */
 void Visa::onTim1Timeout() {
    QString tx;
    tx = ui->cbRepeatCustSeq->currentText().toLatin1();
    driver->writeData(tx.toLatin1());
 }
-
 /* ======================================================================== */
 /*                     (Button) slots                                       */
 /* ======================================================================== */
@@ -473,6 +467,8 @@ void Visa::on_pbRepeatOnOff_clicked() {
 }
 void Visa::clearConsoleCaller() {
    emit clearConsole();
+   ioeditL->clear();
+   ioeditR->clear();
 }
 void Visa::onBtnOpenRegView() {
    regFrm = new Register();
@@ -566,8 +562,8 @@ void Visa::onTransEditReturnPressed() {
 }
 void Visa::onBtnOutputsOnOffClicked() {
 
-   Reg_8087 *regSetPwr     = new Reg_8087(); Q_UNUSED(regSetPwr);
-   Reg_bebf *regLedVlogic  = new Reg_bebf();
+   Reg_8087 *regSetPwr     = Reg_8087::pObj(); Q_UNUSED(regSetPwr);
+   Reg_bebf *regLedVlogic  = Reg_bebf::pObj();
 
    QVector<HwReg*> hwRegs;
    QVector<HwReg*>::iterator it;
@@ -633,7 +629,7 @@ void Visa::onActSnapShotTriggered() {
 }
 void Visa::onBtn8a8bClicked() {
    bool ok = 0;
-   Reg_8a8b *regDvmRngInp = new Reg_8a8b();
+   Reg_8a8b *regDvmRngInp = Reg_8a8b::pObj();
 
    QVector<HwReg*> hwRegs;
    hwRegs.push_back( regDvmRngInp );
@@ -702,7 +698,6 @@ void Visa::onActFuGenTriggered(bool onoff) {
 
    fugen->setVisible(onoff);
 }
-
 /* ======================================================================== */
 /*                     Child Events                                         */
 /* ======================================================================== */
@@ -739,7 +734,13 @@ void Visa::onChildWidgetDestroyed(QObject *died) {
    }
 
 }
-
+void Visa::onUiCmdLineQuery(QString cmd) {
+   QSETTINGS;
+   if (cmd.contains("reqInitialRegState", Qt::CaseInsensitive)) {
+      visareg->reqInitialRegState();
+      config.setValue(objectName() + "/uiCmdLineQuery", cmd);
+   }
+}
 /* ======================================================================== */
 /*                     Serial port driver slots                             */
 /* ======================================================================== */
@@ -877,7 +878,6 @@ void Visa::footerUpdate(PortDialog::Settings p) {
    cursor.setCharFormat(formatRHS);
    cursor.insertText(QString::number( p.baudRate ));
 }
-
 /* ======================================================================== */
 /*                     pretty little helpers                                */
 /* ======================================================================== */
@@ -1197,7 +1197,7 @@ void Visa::childsToDbg() {
 void Visa::setVisaLED_VLogic(Visa::LEDs cLed, bool VlogicEn,
                              quint8 volt, VisaReg* vr) {
    if (regLedVlogic == 0)
-      regLedVlogic = new Reg_bebf();
+      regLedVlogic = Reg_bebf::pObj();
 
    QVector<HwReg*> hwRegs;
    QVector<HwReg*>::iterator it;
@@ -1247,7 +1247,6 @@ void Visa::setVisaLED_VLogic(Visa::LEDs cLed, bool VlogicEn,
    QByteArray ret = vr->writeToReg(hwRegs, VisaReg::RetFormBIN);
    driver->serial->flush();
 }
-
 /* ======================================================================== */
 /*                     class accessors                                      */
 /* ======================================================================== */
@@ -1293,7 +1292,6 @@ void Visa::setUiPeriodicReqChecked(bool b) {
 bool Visa::getUiPeriodicReqIsChecked() {
    return ui->actionPeriodicRequest->isChecked();
 }
-
 /* ======================================================================== */
 /*                     Event handler                                      */
 /* ======================================================================== */
@@ -1337,6 +1335,14 @@ void Visa::keyPressEvent(QKeyEvent *event) {
          }
       }
    }
+   /**
+    * If Enter pressed event detected and the command line uiCommand has
+    * focus, emit a uiCommandQuery signal ...
+    */
+   if ((event->key() == Qt::Key_Enter) &&
+       (ui->uiCmdLine->hasFocus())) {
+      emit uiCmdLineQuery( ui->uiCmdLine->text() );
+   }
 }
 void Visa::saveAllGeometrys() {
    QSETTINGS;
@@ -1363,7 +1369,10 @@ void Visa::restoreAllGeometrys() {
 
 }
 void Visa::showEvent(QShowEvent *) {
+   QSETTINGS;
    restoreAllGeometrys();
+   ui->uiCmdLine->setText( config.value(objectName()
+                                        + "/uiCmdLineQuery","").toString());
 }
 void Visa::closeEvent(QCloseEvent *) {
    saveAllGeometrys();

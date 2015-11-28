@@ -309,27 +309,27 @@ public:
  * structure "HW_ro_img"
  */
 
-   typedef struct {
-      h0001_vers     h0001;
-      h0203_txed     h0203;
-      h04_state      h04;
-      h05_Trig_dist  h05;
-      h0609_RAM_Addr h0609;
-      h0a0d_trig_ev  h0a0d;
-      h1017_adcPwr   h1017;
-      h181f_dvm      h181f;
-      h2023_24bit    h2023;
-      h2427_24bit    h2427;
-      h2b_logic      h2b;
-      h2c2f_scope_ys h2c2f;
-   } HW_ro_img_t;
+//   typedef struct {
+//      h0001_vers     h0001;
+//      h0203_txed     h0203;
+//      h04_state      h04;
+//      h05_Trig_dist  h05;
+//      h0609_RAM_Addr h0609;
+//      h0a0d_trig_ev  h0a0d;
+//      h1017_adcPwr   h1017;
+//      h181f_dvm      h181f;
+//      h2023_24bit    h2023;
+//      h2427_24bit    h2427;
+//      h2b_logic      h2b;
+//      h2c2f_scope_ys h2c2f;
+//   } HW_ro_img_t;
 
 
-   typedef struct {
-      h8087_pows     h8047;
-      h8a8b_rng      h8a8b;
-      hbebf_led      hbebf;
-   } HW_rw_img_t ;
+//   typedef struct {
+//      h8087_pows     h8047;
+//      h8a8b_rng      h8a8b;
+//      hbebf_led      hbebf;
+//   } HW_rw_img_t ;
 
    //   /* Structure of data transfer type A
    // * (write to writable registers) txStream
@@ -357,21 +357,21 @@ public:
    /** Copy of tolerance modified calibration vector */
    static QVector<double> H;
 
-   Reg_0609 *regActRamTrig;
-   Reg_0a0d *regTrigEvDist;
-   Reg_1017 *regAdcPwr;
-   Reg_181f *regAdcDvm;
-   Reg_3037 *regFgenOut;
-   Reg_383b *regFgenFreq;
-   Reg_6063 *regScopeXctrl;
-   Reg_7073 *regCh1PosFil;
-   Reg_7477 *regCh2PosFil;
-   Reg_8087 *regSetPwr;
-   Reg_8a8b *regDvmRngInp;
-   Reg_bebf *regLedVlogic;
+   Reg_0609 *regActRamTrig;      //< 32-Bit
+   Reg_0a0d *regTrigEvDist;      //< 32-Bit
+   Reg_1017 *regAdcPwr;       //< 64-Bit
+   Reg_181f *regAdcDvm;       //< 64-Bit
+   Reg_3037 *regFgenOut;      //< 64-Bit
+   Reg_383b *regFgenFreq;        //< 32-Bit
+   Reg_6063 *regScopeXctrl;      //< 32-Bit
+   Reg_7073 *regCh1PosFil;       //< 32-Bit
+   Reg_7477 *regCh2PosFil;       //< 32-Bit
+   Reg_8087 *regSetPwr;       //< 64-Bit
+   Reg_8a8b *regDvmRngInp;          //< 16-Bit
+   Reg_bebf *regLedVlogic;          //< 16-Bit
 
-   HW_ro_img_t roRegImg;
-   HW_rw_img_t rwRegImg;
+//   HW_ro_img_t roRegImg;
+//   HW_rw_img_t rwRegImg;
 
    enum RetFormat {
       RetFormat_ASCII,

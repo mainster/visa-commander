@@ -132,8 +132,16 @@ private:
 /* ======================================================================== */
 class Reg_0609 : public HwReg {
 
+   explicit Reg_0609() {}
+
 public:
 
+   static Reg_0609 * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_0609();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -164,6 +172,7 @@ public:
 private:
    static const quint8 address;
    static const QString description;
+   static Reg_0609 * pInst;
 };
 
 /* ======================================================================== */
@@ -171,7 +180,15 @@ private:
 /* ======================================================================== */
 class Reg_0a0d : public HwReg {
 
+   explicit Reg_0a0d() {}
+
 public:
+   static Reg_0a0d * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_0a0d();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -206,6 +223,7 @@ public:
 private:
    static const quint8 address;
    static const QString description;
+   static Reg_0a0d * pInst;
 };
 
 /* ======================================================================== */
@@ -213,8 +231,16 @@ private:
 /* ======================================================================== */
 class Reg_1017 : public HwReg {
 
+   explicit Reg_1017() {}
+
 public:
 
+   static Reg_1017 * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_1017();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -250,6 +276,7 @@ public slots:
 private:
    static const quint8 address;
    static const QString description;
+   static Reg_1017 * pInst;
 };
 
 /* ======================================================================== */
@@ -257,8 +284,16 @@ private:
 /* ======================================================================== */
 class Reg_181f : public HwReg {
 
+   explicit Reg_181f() {}
+
 public:
 
+   static Reg_181f * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_181f();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -335,6 +370,7 @@ private:
    //   HwReg::metrics_t metrics;
    static const quint8 address;
    static const QString description;
+   static Reg_181f * pInst;
 };
 
 // -------------------------------------------
@@ -345,7 +381,15 @@ private:
 /* ======================================================================== */
 class Reg_3037 : public HwReg {
 
+   explicit Reg_3037() {}
+
 public:
+   static Reg_3037 * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_3037();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -389,6 +433,7 @@ private:
    //   HwReg::metrics_t metrics;
    static const quint8 address;
    static const QString description;
+   static Reg_3037 * pInst;
 };
 
 // -------------------------------------------
@@ -399,7 +444,15 @@ private:
 /* ======================================================================== */
 class Reg_383b : public HwReg {
 
+   explicit Reg_383b() {}
+
 public:
+   static Reg_383b * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_383b();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -434,6 +487,7 @@ private:
    //   HwReg::metrics_t metrics;
    static const quint8 address;
    static const QString description;
+   static Reg_383b * pInst;
 };
 
 
@@ -445,8 +499,29 @@ private:
 /* ======================================================================== */
 class Reg_6063 : public HwReg {
 
+   /**
+    * Because of the need to generate unique instances of a class, a private
+    * static pointer is declared. Access to the instance of an object can be
+    * done by an accessor method that always returns the same, static class
+    * pointer to the calling function. If no instance of the class has yet been
+    * created before accessing a class, then invokes the instance accessor
+    * exactly once the private class constructor, and initializes the static
+    * pointer before it is returned to the caller.
+    *
+    */
+   explicit Reg_6063() {}
+
 public:
+
+   static Reg_6063 * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_6063();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
+   uint16_t size() { return sizeof(h6063_scopeXA); }
+   quint64 getData() { return h6063_scopeXA.dword; }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
                   QString("0x%1").arg(address, 2, 16, QLatin1Char('0'))
@@ -454,11 +529,8 @@ public:
                   QString(" %1byte ").arg(size()).toStdString().c_str() <<
                   QString(description).toStdString().c_str();
    }
-   uint16_t size() { return sizeof(h6063_scopeXA); }
 
-   quint64 getData() { return h6063_scopeXA.dword; }
-
-/* h60..h63  Scope-X, different bits like
+   /* h60..h63  Scope-X, different bits like
  * trig_end, free_run, stop
  *
  * 32-Bit register
@@ -485,6 +557,7 @@ private:
    //   HwReg::metrics_t metrics;
    static const quint8 address;
    static const QString description;
+   static Reg_6063 * pInst;
 };
 
 
@@ -496,7 +569,15 @@ private:
 /* ======================================================================== */
 class Reg_7073 : public HwReg {
 
+   explicit Reg_7073() {}
+
 public:
+   static Reg_7073 * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_7073();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -509,7 +590,7 @@ public:
 
    quint64 getData() { return h7073_CH1_pos.dword; }
 
-/* h70..h73  Ch-1, Gnd-posit, filter
+   /* h70..h73  Ch-1, Gnd-posit, filter
  *
  * 32-Bit register
  * Word-adressierbar
@@ -532,6 +613,7 @@ private:
    //   HwReg::metrics_t metrics;
    static const quint8 address;
    static const QString description;
+   static Reg_7073 * pInst;
 };
 
 
@@ -543,7 +625,15 @@ private:
 /* ======================================================================== */
 class Reg_7477 : public HwReg {
 
+   explicit Reg_7477() {}
+
 public:
+   static Reg_7477 * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_7477();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -556,7 +646,7 @@ public:
 
    quint64 getData() { return h7477_CH2_pos.dword; }
 
-/* h74..h77  Ch-2, Gnd-posit, filter
+   /* h74..h77  Ch-2, Gnd-posit, filter
  *
  * 32-Bit register
  * Word-adressierbar
@@ -579,6 +669,7 @@ private:
    //   HwReg::metrics_t metrics;
    static const quint8 address;
    static const QString description;
+   static Reg_7477 * pInst;
 };
 
 /* ======================================================================== */
@@ -586,7 +677,15 @@ private:
 /* ======================================================================== */
 class Reg_8087 : public HwReg {
 
+   explicit Reg_8087() {}
+
 public:
+   static Reg_8087 * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_8087();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -634,6 +733,7 @@ public:
 private:
    static const quint8 address;
    static const QString description;
+   static Reg_8087 * pInst;
 };
 
 /* ======================================================================== */
@@ -641,7 +741,15 @@ private:
 /* ======================================================================== */
 class Reg_8a8b : public HwReg {
 
+   explicit Reg_8a8b() {}
+
 public:
+   static Reg_8a8b * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_8a8b();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
@@ -697,6 +805,7 @@ public:
 private:
    static const quint8 address;
    static const QString description;
+   static Reg_8a8b * pInst;
 };
 
 /* ======================================================================== */
@@ -704,46 +813,17 @@ private:
 /* ======================================================================== */
 class Reg_bebf : public HwReg {
 
+   explicit Reg_bebf() {}
+
 public:
-   //   Reg_bebf * getInstance(Qt::instCtrl ctrl = Qt::obj_ptr_only ) {
-   //      if ((ctrl == Qt::obj_ptr_only) ||
-   //          (instance != 0))
-   //         return instance;
-   //      if (ctrl == Qt::obj_new_if_noexist) {
-   //         if (instance == 0)
-   //            instance = new Reg_bebf();
-   //            return instance;
-   //      }
-   //      return 0;
-   //   }
-   /**
-    * @brief
-    *
-    * @return quint8
-    */
-   /**
-    * @brief
-    *
-    * @return quint8
-    */
-   /*!
-    \brief
 
-    \return quint8
-   */
+   static Reg_bebf * pObj() {
+      if (pInst == 0x00)
+         pInst = new Reg_bebf();
+
+      return pInst;
+   }
    quint8 getAddr() {  return address;  }
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    void AboutRegister() {
       qDebug() << QString("Address: ").toStdString().c_str() <<
                   QString("0x%1").arg(address, 2, 16, QLatin1Char('0'))
@@ -751,69 +831,12 @@ public:
                   QString(" %1byte ").arg(size()).toStdString().c_str() <<
                   QString(description).toStdString().c_str();
    }
-   /**
-    * @brief
-    *
-    * @return uint16_t
-    */
-   /**
-    * @brief
-    *
-    * @return uint16_t
-    */
-   /*!
-    \brief
-
-    \return uint16_t
-   */
    uint16_t size() { return sizeof(hbebf_led); }
-   /**
-    * @brief
-    *
-    * @return QByteArray
-    */
-   /**
-    * @brief
-    *
-    * @return QByteArray
-    */
-   /*!
-    \brief
-
-    \return QByteArray
-   */
    QByteArray getDataByteArray() {
       return QByteArray::number((uint16_t) hbebf_led.word);
    }
-   /**
-    * @brief
-    *
-    * @return quint64
-    */
-   /**
-    * @brief
-    *
-    * @return quint64
-    */
-   /*!
-    \brief
-
-    \return quint64
-   */
    quint64 getData() { return hbebf_led.word; }
 
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    enum LED_duty {
       duty_0   = 0x00,
       duty_063 = 0x01,
@@ -822,36 +845,12 @@ public:
       duty_500 = 0x04,
       duty_1   = 0x05
    };
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    enum LED_color {
       highRed_lowOff = 0x00,
       highGrn_lowOff = 0x01,
       highRed_lowGrn = 0x02,
       highGrn_lowRed = 0x03
    };
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    enum LED_freq {
       freq_7dot14_Hz = 0x00,
       freq_3dot6_Hz  = 0x01,
@@ -859,150 +858,30 @@ public:
       freq_0dot83_Hz = 0x03,
       freq_57_Hz     = 0x04
    };
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    enum V_LOGIC_ENB {
       Vlogic_off  = 0x00,
       Vlogic_5V_or_3V = 0x01,
    };
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    enum V_LOGIC_LVL {
       V_LEVEL_5V = 0x00,
       V_LEVEL_3V3 = 0x01
    };
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    Q_DECLARE_FLAGS(LED_dutys, LED_duty)
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    Q_DECLARE_FLAGS(LED_colors, LED_color)
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    Q_DECLARE_FLAGS(LED_freqs, LED_freq)
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    Q_DECLARE_FLAGS(V_LOGIC_ENBS, V_LOGIC_ENB)
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    Q_DECLARE_FLAGS(V_LOGIC_LVLS, V_LOGIC_LVL)
    /* hbe..hbf   LED
  *
  * 16-Bit register
  * BIT-adressierbar
  */
-   /**
-    * @brief
-    *
-    */
-   /**
-    * @brief
-    *
-    */
-   /*!
-    \brief
-
-   */
    typedef union {
-      /**
-       * @brief
-       *
-       */
-      /**
-       * @brief
-       *
-       */
-      /*!
-       \brief
-
-      */
       struct {
          uint16_t Vlocic_lvl:1, Vlocic_enb:1, reserved:6;
          uint16_t LED_color:2, LED_duty:3, LED_Freq:3;
       } ;
       uint16_t word;
-      /**
-    * @brief
-    *
-    */
-      /**
-    * @brief
-    *
-    */
-      /*!
-    \brief
-
-   */
    } hbebf_led_t;
 
    hbebf_led_t hbebf_led;
@@ -1010,7 +889,7 @@ public:
 private:
    static const quint8 address;
    static const QString description;
-   //   static Reg_bebf *instance;
+   static Reg_bebf * pInst;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(Reg_bebf::LED_dutys)

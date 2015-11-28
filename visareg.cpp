@@ -25,9 +25,9 @@ QVector<double> VisaReg::H(100);
 VisaReg::VisaReg(QObject *parent) :
    QObject(parent) {
 
-//   QSETTINGS;
-//   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
-//                             Visa::MAX_CONSOLE_CHARS).toInt();
+   //   QSETTINGS;
+   //   int maxcfg = config.value("ReadOnly/MAX_CONSOLE_CHARS",
+   //                             Visa::MAX_CONSOLE_CHARS).toInt();
    /**
     * Initial state of HW register structures
     */
@@ -37,21 +37,21 @@ VisaReg::VisaReg(QObject *parent) :
    timReqTimeout = new QTimer();
    /** Request for a pointer to driver instance */
    driver = Driver::getObjectPtr();    //?????
-//   ioeditL= IOEdit::getInstance(maxcfg, parent->parent());
+   //   ioeditL= IOEdit::getInstance(maxcfg, parent->parent());
    ioeditL= IOEdit::getObjectPtr();
    visa   = (Visa*) parent;
 
-   regActRamTrig = new Reg_0609();
-   regTrigEvDist = new Reg_0a0d();
-   regAdcPwr     = new Reg_1017();
-   regAdcDvm     = new Reg_181f();
-   regFgenOut    = new Reg_3037();
-   regFgenFreq   = new Reg_383b();
-   regSetPwr     = new Reg_8087();
-   regDvmRngInp  = new Reg_8a8b();
-   regLedVlogic  = new Reg_bebf();
+   regActRamTrig = Reg_0609::pObj();
+   regTrigEvDist = Reg_0a0d::pObj();
+   regAdcPwr     = Reg_1017::pObj();
+   regAdcDvm     = Reg_181f::pObj();
+   regFgenOut    = Reg_3037::pObj();
+   regFgenFreq   = Reg_383b::pObj();
+   regSetPwr     = Reg_8087::pObj();
+   regDvmRngInp  = Reg_8a8b::pObj();
+   regLedVlogic  = Reg_bebf::pObj();
 
-//   calc = Calc::getInstance(this);
+   //   calc = Calc::getInstance(this);
    calc = Calc::getInstance();
 
    connect( driver,        SIGNAL(reqRespKillTimeout()),
@@ -64,14 +64,13 @@ VisaReg::~VisaReg() {
 }
 QVector<double> VisaReg::getH()
 {
-    return H;
+   return H;
 }
 
 void VisaReg::setH(const QVector<double> &value)
 {
-    H = value;
+   H = value;
 }
-
 
 /* ======================================================================== */
 /*                     FPGA communication protocols                         */
@@ -142,6 +141,7 @@ void VisaReg::onReadReqTimeout() {
 
    QString msg = QString("Rx Timeout, bytes received: %1" + rxed).arg(rxCount);
    ioeditL->putInfoLine( msg );
+
    Q_INFO << msg;
 
    driver->serial->flush();
@@ -264,7 +264,7 @@ QByteArray VisaReg::assambleStream( QVector<HwReg*> &regsV,
 }
 
 /* ======================================================================== */
-/*                Transmitter receiver exchange                             */
+/*             Transmitter receiver exchange implementation                 */
 /* ======================================================================== */
 /*!
  \brief Transmitter - Receiver exchange. Transceiver exchange initiates a
@@ -483,18 +483,16 @@ bool VisaReg::procVisaInfo(QByteArray& raw) {
    //   visa->footerRefreshVisa();
    return true;
 }
-
 /* ======================================================================== */
 /*                Tx to registers implementations                           */
 /* ======================================================================== */
-/*!
- \brief  write to LED register 0xbe and VLOGIC 0xbf
-*/
 void VisaReg::testWriteReg() {
 
-   Reg_8087 *regSetPwr     = new Reg_8087(); Q_UNUSED(regSetPwr);
-//   Reg_bebf *regLedVlogic  = new Reg_bebf();
-//   Reg_8a8b *regDvmRngInp  = new Reg_8a8b();
+   Reg_8087 *regSetPwr = Reg_8087::pObj();
+
+   Q_UNUSED(regSetPwr);
+   //   Reg_bebf *regLedVlogic  = new Reg_bebf();
+   //   Reg_8a8b *regDvmRngInp  = new Reg_8a8b();
 
    QVector<HwReg*> hwRegs;
    QVector<HwReg*>::iterator it;
@@ -544,9 +542,9 @@ void VisaReg::testWriteReg() {
 }
 void VisaReg::testWriteReg2() {
 
-//   Reg_8087 *regSetPwr     = new Reg_8087(); Q_UNUSED(regSetPwr);
-//   Reg_bebf *regLedVlogic  = new Reg_bebf();
-   Reg_8a8b *regDvmRngInp  = new Reg_8a8b();
+   //   Reg_8087 *regSetPwr     = new Reg_8087(); Q_UNUSED(regSetPwr);
+   //   Reg_bebf *regLedVlogic  = new Reg_bebf();
+   Reg_8a8b *regDvmRngInp  = Reg_8a8b::pObj();
 
    QVector<HwReg*> hwRegs;
    QVector<HwReg*>::iterator it;
@@ -597,9 +595,32 @@ void VisaReg::testWriteReg2() {
 /* ======================================================================== */
 /*                Tx request slot implementations                           */
 /* ======================================================================== */
-/* ======================================================================== */
+void VisaReg::reqInitialRegState(ushort regCnt) {
+   QByteArray trxReq, trxReqRaw;
+
+   trxReq.append(INIT_READ_REG_REQUEST.replace("%START", FRAMEHEAD));
+
+   trxReq = QString(trxReq)
+         .replace(tr("%NUM_READ"), tr("%1"))
+         .arg(regCnt, 4, 16, QLC)
+         .remove(" ")
+         .toLatin1();
+
+   trxReqRaw.append( visa->convert(trxReq), trxReq.length()/2 );
+   Q_ASSERT(trxReqRaw.length() > 0);
+
+   /**
+    * Initiate a transmitter-receiver work flow and register a
+    * RxResp complete callback slot
+    */
+   VisaReg::trxSts state =
+         trxVisa(trxReqRaw, "onRxRespInitalRegStateCmpl(QByteArray&)", regCnt);
+
+   if (state != VisaReg::trx_success)
+      qDebug() << "trxVisa error";
+}
 int VisaReg::reqDefaultRegs() {
-#define NUM_REGS  0x8c
+   ushort NUM_REGS = 0x8c;
    QByteArray trxReq, trxReqRaw;
    trxReq.clear();
    trxReqRaw.clear();
@@ -630,10 +651,11 @@ int VisaReg::reqDefaultRegs() {
    return 0;
 }
 int VisaReg::reqDefaultOrigRegs() {
-#define NUM_REGS  0x47
-   regScopeXctrl  = new Reg_6063();
-   regCh1PosFil   = new Reg_7073();
-   regCh2PosFil   = new Reg_7477();
+   ushort NUM_REGS = 0x47;
+
+   regScopeXctrl  = Reg_6063::pObj();   //new Reg_6063();
+   regCh1PosFil   = Reg_7073::pObj();
+   regCh2PosFil   = Reg_7477::pObj();
 
    QVector<HwReg*> hwRegs;
    QVector<HwReg*>::iterator it;
@@ -651,7 +673,7 @@ int VisaReg::reqDefaultOrigRegs() {
     * Initial register state must be requested after fpga config
     * was loaded... :-(
     */
-//   regScopeXctrl->h6063_scopeXA.dword = 0x00 ???
+   //   regScopeXctrl->h6063_scopeXA.dword = 0x00 ???
    regSetPwr->h8087_pows.Vplus_set = 4000;
    regSetPwr->h8087_pows.ILim_plus = 3000;
 
@@ -684,32 +706,7 @@ int VisaReg::reqDefaultOrigRegs() {
 
    return 0;
 }
-/* ======================================================================== */
-/* ======================================================================== */
-void VisaReg::reqInitialRegState(ushort regCnt) {
-   QByteArray trxReq, trxReqRaw; bool ok;
-
-   trxReq.append(INIT_READ_REG_REQUEST.replace("%START", FRAMEHEAD));
-
-   trxReq = QString(trxReq)
-         .replace(tr("%NUM_READ"), tr("%1"))
-         .arg(regCnt, 4, 16, QLC)
-         .remove(" ")
-         .toLatin1();
-
-   trxReqRaw.append( visa->convert(trxReq), trxReq.length()/2 );
-   Q_ASSERT(trxReqRaw.length() > 0);
-
-   /**
-    * Initiate a transmitter-receiver work flow and register a
-    * RxResp complete callback slot
-    */
-   VisaReg::trxSts state =
-         trxVisa(trxReqRaw, "onRxRespInitalRegStateCmpl(QByteArray&)", regCnt);
-
-   if (state != VisaReg::trx_success)
-      qDebug() << "trxVisa error";
-}
+/* ------------------------------------------------------------------------- */
 void VisaReg::testReadReg() {
    QByteArray trxReq, trxReqRaw;
    trxReq.append(INIT_READ_REG_REQUEST.replace(
@@ -797,7 +794,6 @@ int VisaReg::reqCalibDataFromAtiny(bool onoff) {
       return 0;
    }
 }
-
 /* ======================================================================== */
 /*                Rx response slot implementations                          */
 /* ======================================================================== */
@@ -807,109 +803,94 @@ void VisaReg::onRxRespInitalRegStateCmpl(QByteArray& rxdata) {
    disconnect(driver, SIGNAL(reqResponseCmpl(QByteArray&)),
               this,   SLOT(onRxRespInitalRegStateCmpl(QByteArray&)));
 
-//   beVerbose(rxdata);
+   //   beVerbose(rxdata);
 
    /**
     * Copy the initial register data and hold it as backup ofer the hole
     * runtime
     */
-   initialRegState.append( rxdata );
+   initialRegState.append( rxdata/*.toHex()*/ );
+//   rxdata = initialRegState.last();
 
    qDebug() << rxdata.toHex();
+
+   regScopeXctrl  = Reg_6063::pObj(); // new Reg_6063();
+   regCh1PosFil   = Reg_7073::pObj();
+   regCh2PosFil   = Reg_7477::pObj();
 
    /**
     * Split and write back unioned stream data
     */
-   uint32_t ram = (uint32_t) rxdata.mid(0x06, regActRamTrig->size()).toInt();
+   /* -------------------------------------------------------------------- */
+   uint32_t ram =       (uint32_t) rxdata.mid(regActRamTrig->getAddr(),
+                                              regActRamTrig->size()).toInt();
    qDebug() << "ram 0609: " << ram;
    regActRamTrig->h0609_RAM_Addr.dword = ram;
-
-   uint32_t trigEv = (uint32_t) rxdata.mid(0x0a, regTrigEvDist->size()).toInt();
+   /* -------------------------------------------------------------------- */
+   uint32_t trigEv =    (uint32_t) rxdata.mid(regTrigEvDist->getAddr(),
+                                              regTrigEvDist->size()).toInt();
    qDebug() << "trig ev: " << trigEv;
    regTrigEvDist->h0a0d_trig_ev.dist = trigEv;
-
-   uint64_t AdcPwr = (uint64_t) rxdata.mid(0x10, regAdcPwr->size()).toInt();
+   /* -------------------------------------------------------------------- */
+   uint64_t AdcPwr =    (uint64_t) rxdata.mid(regAdcPwr->getAddr(),
+                                              regAdcPwr->size()).toInt();
    qDebug() << "AdcPwr: " << AdcPwr;
    regAdcPwr->h1017_adcPwr.lword = AdcPwr;
-
-   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
+   /* -------------------------------------------------------------------- */
+   uint64_t AdcDvm =    (uint64_t) rxdata.mid(regAdcDvm->getAddr(),
+                                              regAdcDvm->size()).toInt();
    qDebug() << "AdcDvm: " << AdcDvm;
    regAdcDvm->h181f_dvm.lword = AdcDvm;
+   /* -------------------------------------------------------------------- */
+   uint64_t FgenOut =   (uint64_t) rxdata.mid(regFgenOut->getAddr(),
+                                              regFgenOut->size()).toInt();
+   qDebug() << "FgenOut: " << FgenOut;
+   regFgenOut->h3037_fugen.lword = FgenOut;
+   /* -------------------------------------------------------------------- */
+   uint32_t FgenFreq =  (uint32_t) rxdata.mid(regFgenFreq->getAddr(),
+                                              regFgenFreq->size()).toInt();
+   qDebug() << "FgenFreq: " << FgenFreq;
+   regFgenFreq->h383b_fufreq.dword = FgenFreq;
+   /* -------------------------------------------------------------------- */
+   uint32_t ScopeXctrl = (uint32_t) rxdata.mid(regScopeXctrl->getAddr(),
+                                               regScopeXctrl->size()).toInt();
+   qDebug() << "ScopeXctrl: " << ScopeXctrl;
+   regScopeXctrl->h6063_scopeXA.dword = ScopeXctrl;
+   /* -------------------------------------------------------------------- */
+   uint32_t Ch1PosFil = (uint32_t) rxdata.mid(regCh1PosFil->getAddr(),
+                                              regCh1PosFil->size()).toInt();
+   qDebug() << "Ch1PosFil: " << Ch1PosFil;
+   regCh1PosFil->h7073_CH1_pos.dword = Ch1PosFil;
+   /* -------------------------------------------------------------------- */
+   uint32_t Ch2PosFil = (uint32_t) rxdata.mid(regCh2PosFil->getAddr(),
+                                              regCh2PosFil->size()).toInt();
+   qDebug() << "Ch2PosFil: " << Ch2PosFil;
+   regCh2PosFil->h7477_CH2_pos.dword = Ch2PosFil;
+   /* -------------------------------------------------------------------- */
+   uint64_t SetPwr =    (uint64_t) rxdata.mid(regSetPwr->getAddr(),
+                                              regSetPwr->size()).toInt();
+   qDebug() << "SetPwr: " << SetPwr;
+   regSetPwr->h8087_pows.lword = SetPwr;
+   /* -------------------------------------------------------------------- */
+   uint16_t DvmRngInp = (uint16_t) rxdata.mid(regDvmRngInp->getAddr(),
+                                              regDvmRngInp->size()).toInt();
+   qDebug() << "DvmRngInp: " << DvmRngInp;
+   regDvmRngInp-> h8a8b_rng.word = DvmRngInp;
+   /* -------------------------------------------------------------------- */
+   uint16_t LedVlogic = (uint16_t) rxdata.mid(regLedVlogic->getAddr(),
+                                              regLedVlogic->size()).toInt();
+   qDebug() << "LedVlogic: " << LedVlogic;
+   regLedVlogic-> hbebf_led.word = LedVlogic;
+   /* -------------------------------------------------------------------- */
 
+   ioeditL = IOEdit::getObjectPtr( location_Left );
+   ioeditR = IOEdit::getObjectPtr( location_Right );
 
-   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
-   qDebug() << "AdcDvm: " << AdcDvm;
-   regAdcDvm->h181f_dvm.lword = AdcDvm;
+   QString rxdataStr = rxdata.toHex();
+   ioeditL->putRxDataSniff( rxdataStr );
+   ioeditR->putRxData( rxdataStr );
 
-   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
-   qDebug() << "AdcDvm: " << AdcDvm;
-   regAdcDvm->h181f_dvm.lword = AdcDvm;
-
-   uint64_t AdcDvm = (uint64_t) rxdata.mid(0x18, regAdcDvm->size()).toInt();
-   qDebug() << "AdcDvm: " << AdcDvm;
-   regAdcDvm->h181f_dvm.lword = AdcDvm;
-
-
-
-   uint16_t ledVlog = (uint16_t) rxdata.mid(0xbe, regLedVlogic->size()).toInt();
-   qDebug() << "ledVlog: " << ledVlog;
-   regLedVlogic-> hbebf_led.word = ledVlog;
-
-   uint64_t setPwr = (uint64_t) rxdata.mid(0x80, regSetPwr->size()).toInt();
-   qDebug() << "setPwr: " << setPwr;
-   regSetPwr->h8087_pows.lword = setPwr;
-
-   uint16_t DvmRng = (uint16_t) rxdata.mid(0x8a, regDvmRngInp->size()).toInt();
-   qDebug() << "DvmRng: " << DvmRng;
-   regDvmRngInp-> h8a8b_rng.word = DvmRng;
-
-
-   /* ===================================================================== */
-//   QString rxdataStr = rxdata.toHex();
-//   static qint16 nOverwrite = 0;
-
-//   /** Local shortcut */
-//   Reg_181f::h181f_dvm_t rdvm = regAdcDvm->h181f_dvm;
-
-//   /** External supply voltage */
-//   double V_in =
-//         (rdvm.ADC_Vbias - rdvm.ADC_gnd) * H[14];
-
-//   /** Common scale factor */
-//   double SCAL =
-//         calc->cCalib[80].Hd / calc->cCalib[70].Hd;
-
-//   /** Calc all caombinations page 45/46 */
-//   QVector<double> dvms;
-//   for (int j=21; j<27; j++) {
-//      dvms.append(( (rdvm.ADC_avg & 0x3fff) -
-//                    (rdvm.ADC_sel_gnd & 0x3fff) +
-//                    H[j]) * SCAL * H[j-6]);
-//   }
-
-//   QString mode =
-//         tr("Dvm1 range 0.2V: #Dvm1 range 2.0V: #Dvm1 range 20V : #") +
-//         tr("Dvm2 range 0.2V: #Dvm2 range 2.0V: #Dvm2 range 20V : #");
-//   QStringList lst = mode.split("#");
-
-//   ioeditL->putInfoLine(QString::number(V_in), "V_in  :");
-
-//   for (int j=0; j<dvms.length(); j++)
-//      ioeditL->putInfoLine(QString::number(dvms[j]), lst.at(j));
-
-//   if (nOverwrite < 0)
-//      nOverwrite = ioeditL->blockCount();
-
-//   ioeditL->putRxData( rxdataStr );
-
-//   Dvm *DvmDC     = Dvm::getObjectPtr(dvmType_DC);
-//   Dvm *DvmACDC   = Dvm::getObjectPtr(dvmType_ACDC);
-
-//   /** Dvm lcd refresh */
-//   if ( (DvmDC != 0) && (DvmACDC != 0) ) {
-//      DvmDC->setLCDval(dvms.at(1));
-//      DvmACDC->setLCDval(dvms.at(1));
-//   }
+   rxdata.clear();
 }
 void VisaReg::onRxRespDefaultReadCmpl(QByteArray& rxdata) {
 
@@ -917,8 +898,8 @@ void VisaReg::onRxRespDefaultReadCmpl(QByteArray& rxdata) {
    disconnect(driver, SIGNAL(reqResponseCmpl(QByteArray&)),
               this,   SLOT(onRxRespDefaultReadCmpl(QByteArray&)));
 
-//   beVerbose(rxdata);
-//   return;
+   //   beVerbose(rxdata);
+   //   return;
 
    qDebug() << rxdata.toHex();
 
@@ -1017,7 +998,7 @@ void VisaReg::beVerbose(QByteArray& rxdata) {
    // V_in AVG  GND  SEL_GND
    // 007d 009e 4396 7691
    ///////////////////////////
-//   qDebug() << rxdataStr;
+   //   qDebug() << rxdataStr;
 #ifdef VERBOSITY_LVL_5
    Q_INFO << "part 0x10..0x17:" << rxPart1017;
    Q_INFO << "part 0x18..0x1f:" << rxPart181f;
@@ -1114,8 +1095,8 @@ void VisaReg::beVerbose(QByteArray& rxdata) {
    Dvm *DvmACDC   = Dvm::getObjectPtr(dvmType_ACDC);
 
    if ( (DvmDC != 0) && (DvmACDC != 0) ) {
-//      DvmDC->updateDvmConfig();
-//      DvmACDC->updateDvmConfig();
+      //      DvmDC->updateDvmConfig();
+      //      DvmACDC->updateDvmConfig();
 
       DvmDC->setLCDval(dvms.at(1));
       DvmACDC->setLCDval(dvms.at(1));
@@ -1125,10 +1106,10 @@ void VisaReg::beVerbose(QByteArray& rxdata) {
    /*                      next try                                    */
    /* ---------------------------------------------------------------- */
 
-//   QString str;
-//   QVector<quint16> vr;
-//   QVector<quint16>::iterator it;
-//   Driver *driver = Driver::getObjectPtr();
+   //   QString str;
+   //   QVector<quint16> vr;
+   //   QVector<quint16>::iterator it;
+   //   Driver *driver = Driver::getObjectPtr();
 #ifdef VERBOSITY_LVL_5
    qDebug().noquote() << tr("0x1a1b")
                       << driver->rxBuffReq.data.mid(0x1a, 2).toHex().toInt(&ok, 16);
@@ -1141,9 +1122,7 @@ void VisaReg::beVerbose(QByteArray& rxdata) {
    //   }
 
 }
-
-/* ======================================================================== */
-/* ======================================================================== */
+/* ------------------------------------------------------------------------- */
 void VisaReg::onRxRespInfoUcCmpl(QByteArray& rxdata) {
    /** First of all, disconnect this slot from readyRead() driver signal */
    disconnect(driver, SIGNAL(reqResponseCmpl(QByteArray&)),
@@ -1224,43 +1203,41 @@ void VisaReg::onRxRespCalibData(QByteArray& rxdata) {
     */
    emit calibInfoAvailable();
 }
-
 /* ======================================================================== */
 /*                     Instance initialization                              */
 /* ======================================================================== */
 void VisaReg::init_HwRoImg(bool initVal) {
-   uint8_t by = 0x00; uint32_t byby = 0x00000000;
+   //   uint8_t by = 0x00; uint32_t byby = 0x00000000;
 
-   if (initVal) {
-      by = 0xff;
-      byby--;
-   }
+   //   if (initVal) {
+   //      by = 0xff;
+   //      byby--;
+   //   }
 
-   roRegImg.h0001.word  =  (uint16_t)  (by << 8) | by;
-   roRegImg.h0203.txed  =  (uint16_t)  (by << 8) | by;
-   roRegImg.h04.byte    =  (uint8_t)   by;
-   roRegImg.h05         =  (uint8_t)   by;
-   roRegImg.h0609.dword =  (uint32_t)  byby;
-   roRegImg.h0a0d.dist  =  (uint32_t)  byby;
-   roRegImg.h1017.lword =  (uint64_t)  (byby << 31) | byby;
-   roRegImg.h181f.lword =  (uint64_t)  (byby << 31) | byby;
-   roRegImg.h2023.dword =  (uint32_t)  byby;
-   roRegImg.h2427.dword =  (uint32_t)  byby;
-   roRegImg.h2b.byte    =  (uint8_t)   by;
-   roRegImg.h2c2f.dword =  (uint32_t)  byby;
+   //   roRegImg.h0001.word  =  (uint16_t)  (by << 8) | by;
+   //   roRegImg.h0203.txed  =  (uint16_t)  (by << 8) | by;
+   //   roRegImg.h04.byte    =  (uint8_t)   by;
+   //   roRegImg.h05         =  (uint8_t)   by;
+   //   roRegImg.h0609.dword =  (uint32_t)  byby;
+   //   roRegImg.h0a0d.dist  =  (uint32_t)  byby;
+   //   roRegImg.h1017.lword =  (uint64_t)  (byby << 31) | byby;
+   //   roRegImg.h181f.lword =  (uint64_t)  (byby << 31) | byby;
+   //   roRegImg.h2023.dword =  (uint32_t)  byby;
+   //   roRegImg.h2427.dword =  (uint32_t)  byby;
+   //   roRegImg.h2b.byte    =  (uint8_t)   by;
+   //   roRegImg.h2c2f.dword =  (uint32_t)  byby;
 }
 void VisaReg::init_HwRwImg(bool initVal) {
-   uint8_t by = 0x00; uint32_t byby = 0x00000000;
+   //   uint8_t by = 0x00; uint32_t byby = 0x00000000;
 
-   if (initVal) {
-      by = 0xff;
-      byby--;
-   }
-   rwRegImg.h8047.lword =  (uint32_t) byby;
-   rwRegImg.h8a8b.word  =  (uint32_t) byby;
-   rwRegImg.hbebf.word  =  (uint16_t)  (by << 8) | by;
+   //   if (initVal) {
+   //      by = 0xff;
+   //      byby--;
+   //   }
+   //   rwRegImg.h8047.lword =  (uint32_t) byby;
+   //   rwRegImg.h8a8b.word  =  (uint32_t) byby;
+   //   rwRegImg.hbebf.word  =  (uint16_t)  (by << 8) | by;
 }
-
 /* ======================================================================== */
 /*                     pretty little helpers                                */
 /* ======================================================================== */
@@ -1282,8 +1259,8 @@ QVector<uint16_t> VisaReg::convertCalib(QString in,
       return rawv;
    }
 
-//   if ((in.remove(" ")).length() < in.length())
-//      Q_INFO << "Whitespace truncated!";
+   //   if ((in.remove(" ")).length() < in.length())
+   //      Q_INFO << "Whitespace truncated!";
 
    /**
     * We expect that in is a String that encodes a sequence of hex-coded
@@ -1322,9 +1299,9 @@ char *VisaReg::convert(QString in) {
    int le = in.length()/2;
    raw = (char *) calloc(le, 1);
 
-//   if ((in.remove(" ")).length() < in.length()) {
-////      Q_INFO << "Whitespace truncated!";
-//   }
+   //   if ((in.remove(" ")).length() < in.length()) {
+   ////      Q_INFO << "Whitespace truncated!";
+   //   }
 
    /**
     * We expect that in is a String that encodes a sequence of hex-coded

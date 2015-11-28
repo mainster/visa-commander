@@ -25,7 +25,7 @@ Calc::Calc(QWidget *parent) :
 
    QSETTINGS;
 
-   ioeditL  = IOEdit::getInstance(location_Left, parent);
+   ioeditL  = IOEdit::getInstance(parent);
    visareg  = VisaReg::getObjectPtr();
    eepromRx = new QVector<uint16_t>(100);
 }

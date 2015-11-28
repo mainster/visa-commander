@@ -202,7 +202,8 @@ public:
    bool getModeSnifferIsChecked();
 
 signals:
-      void clearConsole();
+   void clearConsole();
+   void uiCmdLineQuery(QString cmd);
 
 public slots:
    void footerRefreshVisa();
@@ -258,6 +259,7 @@ public slots:
    void restoreAllGeometrys();
    void saveAllGeometrys();
    void onChildWidgetDestroyed(QObject *died);
+   void onUiCmdLineQuery(QString cmd);
 
 protected:
    void initActionsConnections();

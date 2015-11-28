@@ -34,6 +34,7 @@ class IOEdit : public QPlainTextEdit {
    Q_OBJECT
 
 public:
+
 //   QDataStream &operator<<(QDataStream &dstream/*, const IOEdit &cioed*/) {
 //      dstream << "hallo";
 //      return dstream;
@@ -104,20 +105,20 @@ public:
 //      return inst;
 //   }
 #define QFOLDINGEND }
-   explicit IOEdit(quint64 maxChars = 0, QWidget *parent = 0);
-   static IOEdit* getInstance(IOEditLocs loc = location_Left,
-                              QWidget *parent = 0) {
+   explicit IOEdit(QWidget *parent = 0, quint64 maxChars = 0);
+
+   static IOEdit* getInstance(QWidget *parent = 0, IOEditLocs loc = location_Left) {
 
       if (loc == location_Left) {
          if (ioeditL == 0x00)
-            ioeditL = new IOEdit(0, parent);
+            ioeditL = new IOEdit(parent);
 
          return ioeditL;
       }
 
       if (loc == location_Right) {
          if (ioeditR == 0x00)
-            ioeditR = new IOEdit(0, parent);
+            ioeditR = new IOEdit(parent);
 
          return ioeditR;
       }

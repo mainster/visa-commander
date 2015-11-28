@@ -63,7 +63,9 @@ const IOEdit::visaSeqences IOEdit::vseq =  {
  \param maxChars
  \param parent
 */
-IOEdit::IOEdit(quint64 maxChars, QWidget *parent)
+
+
+IOEdit::IOEdit(QWidget *parent, quint64 maxChars)
    : QPlainTextEdit(parent) {
 
    QPalette p = palette();
@@ -171,6 +173,8 @@ IOEdit::IOEdit(quint64 maxChars, QWidget *parent)
  \brief
 
 */
+
+
 IOEdit::~IOEdit() {
 
 }
@@ -705,6 +709,10 @@ void IOEdit::wheelEvent ( QWheelEvent * event ) {
    }
    event->accept();
 }
+
+//void IOEdit::clearConsole() {
+//   this->QPlainTextEdit.clear();
+//}
 
 QStringList IOEdit::getCurrentTextBlocks() {
    QStringList blks;
