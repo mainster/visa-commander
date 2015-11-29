@@ -490,6 +490,7 @@ private:
    static Reg_383b * pInst;
 };
 
+
 // -------------------------------------------
 /** BIT STAGING NOT VERIFIED AT THIS POINT */
 // -------------------------------------------
@@ -559,6 +560,7 @@ private:
    static Reg_6063 * pInst;
 };
 
+
 // -------------------------------------------
 /** BIT STAGING NOT VERIFIED AT THIS POINT */
 // -------------------------------------------
@@ -613,6 +615,7 @@ private:
    static const QString description;
    static Reg_7073 * pInst;
 };
+
 
 // -------------------------------------------
 /** BIT STAGING NOT VERIFIED AT THIS POINT */

@@ -50,10 +50,8 @@ VisaReg::VisaReg(QObject *parent) :
    regSetPwr     = Reg_8087::pObj();
    regDvmRngInp  = Reg_8a8b::pObj();
    regLedVlogic  = Reg_bebf::pObj();
-   regScopeXctrl = Reg_6063::pObj();
-   regCh1PosFil  = Reg_7073::pObj();
-   regCh2PosFil  = Reg_7477::pObj();
 
+   //   calc = Calc::getInstance(this);
    calc = Calc::getInstance();
 
    connect( driver,        SIGNAL(reqRespKillTimeout()),
