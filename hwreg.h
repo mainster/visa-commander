@@ -6,7 +6,7 @@
 #include <QObject>
 #include <QDebug>
 
-
+//?!
 // ------------------------------------------------------------------------
 namespace Qt {
 enum instCtrl {
