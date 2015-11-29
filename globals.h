@@ -16,7 +16,8 @@
 #define LOAD_HARDWARE_DAT_FROM_FILESYSTEM
 //#undef LOAD_HARDWARE_DAT_FROM_FILESYSTEM
 
-#define CONFIG_PATH     "/home/mainster/.config/visa-commander/config"
+//#define CONFIG_PATH     "/home/mainster/.config/visa-commander/config"
+#define CONFIG_PATH     "$HOME/.config/visa-commander/config"
 
 #define TMP_PATH        "/tmp/"
 /** Heartbeat timer periode - periodically req default register information */
