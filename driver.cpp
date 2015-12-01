@@ -121,7 +121,7 @@ int Driver::writeData(const QByteArray &data, bool putToConsole) {
       //      serial->flush();
    }
    else {
-      ioeditL->putTxData( "serial->isOpen() returns FALSE" );
+      ioeditL->putTxData( QString("serial->isOpen() returns FALSE") );
       return -1;
    }
    if (putToConsole) {

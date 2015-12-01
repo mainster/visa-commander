@@ -173,6 +173,7 @@ public slots:
    void onwWheelDeltaReceived(QPoint delta);
    bool savePersistanceSettings();
    void loadPersistanceSettings();
+   void putTxData(const QByteArray &data);
    void putTxData(const QString &data);
    void putRxData(QString &data,
                   enum doBuffClear clear = ClearReferencedBuffer,

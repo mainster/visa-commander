@@ -47,6 +47,9 @@ VisaReg::VisaReg(QObject *parent) :
    regAdcDvm     = Reg_181f::pObj();
    regFgenOut    = Reg_3037::pObj();
    regFgenFreq   = Reg_383b::pObj();
+   regScopeXctrl = Reg_6063::pObj();
+   regCh1PosFil  = Reg_7073::pObj();
+   regCh2PosFil  = Reg_7477::pObj();
    regSetPwr     = Reg_8087::pObj();
    regDvmRngInp  = Reg_8a8b::pObj();
    regLedVlogic  = Reg_bebf::pObj();
@@ -88,7 +91,8 @@ void VisaReg::setH(const QVector<double> &value)
  * data-stream to the FPGA has he form, shown in ﬁgure 2.5
  */
 QByteArray VisaReg::writeToReg(QVector<HwReg*> &regObj,
-                               RetFormat retFormat) {
+                               RetFormat retFormat,
+                               HwRegRef sourceObj) {
    /** Sort registers in ascending address order */
    sortForAddrs(regObj);
 
@@ -99,7 +103,9 @@ QByteArray VisaReg::writeToReg(QVector<HwReg*> &regObj,
    QByteArray retRaw;
    retRaw.append( convert( retASCII ), retASCII.length()/2 );
 
-   //   bool *ok;
+   /** Check if the source object of the hwReg vector should be cleared */
+   if (sourceObj == HwRegRef_clear)
+      regObj.clear();
 
    switch (retFormat) {
       case RetFormat_ASCII:   {
@@ -262,7 +268,14 @@ QByteArray VisaReg::assambleStream( QVector<HwReg*> &regsV,
       return QString(blks).remove(" ").toLatin1();
 #endif
 }
+void VisaReg::add2TxStream(HwReg *reg) {
+   /** Here some "default" registers could be pushed. */
+   hwRegs.push_back( regLedVlogic );
+   hwRegs.push_back( regScopeXctrl );
 
+   /** Push the altered register to tx stream */
+   hwRegs.push_back( reg );
+}
 /* ======================================================================== */
 /*             Transmitter receiver exchange implementation                 */
 /* ======================================================================== */

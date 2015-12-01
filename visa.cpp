@@ -98,6 +98,14 @@ Reg_bebf* Visa::regLedVlogic = 0;
  *
  * ======================================================================== */
 
+Visa::globalState gs = {
+   false,   //<        blockOnReadyRead;
+   false,   //<        errorHandleractive;
+   false,   //<        hw_xxx_dat_loaded;
+   false,   //<        calibrated;
+//   false,   //<        changedPowerCfg;
+//   false,   //<        changedFuGenCfg;
+};
 
 /* ======================================================================== */
 /*                     class constructor                                    */
@@ -107,9 +115,7 @@ Visa::Visa(QWidget *parent) :
    ui(new Ui::Visa) {
 
    ui->setupUi(this);
-   /** Initial setup */
-   gs.hw_xxx_dat_loaded = false;
-   gs.calibrated        = false;
+
    newParent = parent;
 
    QSETTINGS;
@@ -121,13 +127,16 @@ Visa::Visa(QWidget *parent) :
 
    ioeditL  = IOEdit::getInstance(this, location_Left);
    ioeditR  = IOEdit::getInstance(this, location_Right);
-//   ioeditL = ui->ioeditL;
-//   ioeditR = ui->ioeditR;
+
+   ioeditL->putInfoLine("Left", "Initial");
+   ioeditR->putInfoLine("Right", "Initial");
+   //   ioeditL = ui->ioeditL;
+   //   ioeditR = ui->ioeditR;
 
 
-   visareg  = new VisaReg(this);
+   vr  = new VisaReg(this);
 
-   fugen    = 0x00;
+   fug    = 0x00;
    pwr      = 0x00;
    dvmDc    = 0x00;
    dvmAcDc  = 0x00;
@@ -155,7 +164,7 @@ Visa::Visa(QWidget *parent) :
 #endif
 
 
-//   /** Embedd the ioedit's instance widget into visa window */
+   //   /** Embedd the ioedit's instance widget into visa window */
    ui->splIOEd->addWidget( this->ioeditL );
    ui->splIOEd->addWidget( this->ioeditR );
 
@@ -197,7 +206,7 @@ Visa::Visa(QWidget *parent) :
    connect(ui->pbDeleteCurrIdx,  SIGNAL(clicked()),
            this,                 SLOT(  onBtnDeleteCurrIdxClicked()  ));
 
-   connect( visareg,          SIGNAL(calibInfoAvailable()),
+   connect( vr,          SIGNAL(calibInfoAvailable()),
             calc,             SLOT(  onCalibInfoAvailable()  ));
 
    connect( ui->btnOutputsOnOff, SIGNAL(clicked()),
@@ -225,9 +234,6 @@ Visa::Visa(QWidget *parent) :
    QTimer::singleShot(100, Qt::PreciseTimer, this, SLOT(autoRunTimerSLOT()));
 #endif
 
-   /** RINGBUFFER */
-   gs.blockOnReadyRead = false;
-   /** RINGBUFFER END*/
 
    /** Start program heartbeat */
    hbeat->tim->start();
@@ -286,9 +292,9 @@ void Visa::initActionsConnections() {
 
    //<<<<<<<<<<<<<<     ui action buttons     >>>>>>>>>>>>>>>>>>>>>>>>>//
    connect( ui->actionTestWrite,    SIGNAL(triggered()),
-            visareg,                SLOT(  testWriteReg()  ));
+            vr,                SLOT(  testWriteReg()  ));
    connect( ui->actionTestRead,     SIGNAL(triggered()),
-            visareg,                SLOT(  testReadReg()  ));
+            vr,                SLOT(  testReadReg()  ));
 
    connect( ui->actionOpenDvm,      SIGNAL(triggered()),
             this,                   SLOT(  onOpenDvmClicked()  ));
@@ -298,7 +304,7 @@ void Visa::initActionsConnections() {
    connect( ui->actionRereadDat,    SIGNAL(triggered()),
             calc,                   SLOT(  loadHardwareDat()  ));
    connect( ui->actReadTinyCalib,   SIGNAL(triggered()),
-            visareg,                SLOT( reqCalibDataFromAtiny()  ));
+            vr,                SLOT( reqCalibDataFromAtiny()  ));
 
    //   connect( ui->actionConsoleColor, SIGNAL(triggered()),
    //            ioedit,                 SLOT(  setColorBack()  ));
@@ -313,8 +319,8 @@ void Visa::initActionsConnections() {
             ioeditR,                 SLOT(  clear()  ));
    connect( ui->actionAbout,        SIGNAL(triggered()),
             this,                   SLOT(  about()  ));
-//   connect( ui->actionSendSine,     SIGNAL(triggered()),
-//            this,                   SLOT(  SinToRam()  ));
+   //   connect( ui->actionSendSine,     SIGNAL(triggered()),
+   //            this,                   SLOT(  SinToRam()  ));
    connect( ui->actionRegisters,    SIGNAL(triggered()),
             this,                   SLOT(  onActionRegistersOverview()  ));
    connect( ui->actionSaveConfig,   SIGNAL(triggered()),
@@ -360,7 +366,7 @@ void Visa::initActionsConnections() {
 
 
    connect( ui->actInitialRegStat,  SIGNAL(triggered()),
-            visareg,                SLOT(reqInitialRegState()));
+            vr,                SLOT(reqInitialRegState()));
 
    ui->actionParserEnable->setChecked(false);
    ui->actionFull_Ruler->setChecked(false);
@@ -415,9 +421,26 @@ void Visa::onTimHbeatTimeout() {
     */
    if ( driver->isPortOpen() &&
         gs.hw_xxx_dat_loaded &&
-        gs.calibrated && ui->actionPeriodicRequest->isChecked()) {
-      visareg->reqDefaultRegs();
+        gs.calibrated ) {
+
+      /** Everything fine for fpga communication */
+
+
+      if ( vr->hwRegs.isEmpty() ) {
+         /** No cfg updates */
+         if (ui->actionPeriodicRequest->isChecked()) {
+            /** Periodic request enabled */
+            vr->reqDefaultRegs();
+         }
+      }
+      else {
+         /** cfg updates */
+
+         QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN,
+                                         VisaReg::HwRegRef_clear);
+      }
    }
+
 
    /** Refresh rx byte counter label */
    ui->labRxCtr->setText(QString::number(
@@ -609,7 +632,7 @@ void Visa::onBtnOutputsOnOffClicked() {
          serial.write(retRaw);
          serial.waitForBytesWritten(10);
       */
-   QByteArray ret = visareg->writeToReg(hwRegs, VisaReg::RetFormBIN);
+   QByteArray ret = vr->writeToReg(hwRegs, VisaReg::RetFormBIN);
 
    //   QTime t;
    //   t.start();
@@ -651,7 +674,7 @@ void Visa::onBtn8a8bClicked() {
 
    regDvmRngInp->h8a8b_rng.word = val;
 
-   visareg->writeToReg(hwRegs);
+   vr->writeToReg(hwRegs);
 }
 void Visa::onLe8a8bChanged(QString str) {
    return;
@@ -686,17 +709,17 @@ void Visa::setSnifferTimEnabled(bool onoff) {
 void Visa::onActFuGenTriggered(bool onoff) {
    QSETTINGS;
 
-   (fugen == 0x00)
-         ?  fugen = FuGen::getInstance( newParent )
-         :  fugen = FuGen::getObjectPtr();
+   (fug == 0x00)
+         ?  fug = FuGen::getInstance( newParent )
+         :  fug = FuGen::getObjectPtr();
 
    if (! onoff)
-      config.setValue(fugen->objectName() + GEOM, fugen->saveGeometry());
+      config.setValue(fug->objectName() + GEOM, fug->saveGeometry());
    else
-      fugen->restoreGeometry(config.value(fugen->objectName() + GEOM,"")
-                             .toByteArray());
+      fug->restoreGeometry(config.value(fug->objectName() + GEOM,"")
+                           .toByteArray());
 
-   fugen->setVisible(onoff);
+   fug->setVisible(onoff);
 }
 /* ======================================================================== */
 /*                     Child Events                                         */
@@ -737,7 +760,7 @@ void Visa::onChildWidgetDestroyed(QObject *died) {
 void Visa::onUiCmdLineQuery(QString cmd) {
    QSETTINGS;
    if (cmd.contains("reqInitialRegState", Qt::CaseInsensitive)) {
-      visareg->reqInitialRegState();
+      vr->reqInitialRegState();
       config.setValue(objectName() + "/uiCmdLineQuery", cmd);
    }
 }
@@ -748,7 +771,7 @@ void Visa::onSerialBaudChanged(qint32 baud,
                                QSerialPort::Directions dir) {
    Q_UNUSED(dir);
 
-//   ui->statusBar->showMessage();
+   //   ui->statusBar->showMessage();
 
    QTextCursor cursor( ui->statusBar->getTeStat()->textCursor() );
    //   ui->teStateFooter->setCursorWidth(50);
@@ -782,7 +805,7 @@ void Visa::onDriverPortConnected() {
    calc->loadHardwareDat();
 
    /** Request hardware specific tolerance values from visascopes ATtiny */
-   visareg->reqCalibDataFromAtiny();
+   vr->reqCalibDataFromAtiny();
 
    setVisaLED_VLogic(Visa::led_flash_gn, true, 5);
 
@@ -814,7 +837,7 @@ void Visa::onDriverPortDisconnected() {
 }
 void Visa::footerUpdate(PortDialog::Settings p) {
 
-//   QTextCursor cursor( this->teStat->textCursor());
+   //   QTextCursor cursor( this->teStat->textCursor());
    QTextCursor cursor( ui->statusBar->getTeStat()->textCursor() );
 
    cursor.setPosition(0, QTextCursor::KeepAnchor);
@@ -954,10 +977,10 @@ void Visa::closeChildsAlso() {
       pwr->close();
    }
 
-   if ( fugen ) {
-      config.setValue(fugen->objectName() + GEOM,
-                      fugen->saveGeometry());
-      fugen->close();
+   if ( fug ) {
+      config.setValue(fug->objectName() + GEOM,
+                      fug->saveGeometry());
+      fug->close();
    }
 
    //   this->disconnect();
@@ -1082,7 +1105,7 @@ void Visa::footerRefreshVisa() {
    ///< Move cursor to end of current text instead of jusing methode .append (nonewline)
    QTextCursor cursor;
 
-//   cursor = ui->teVisaInfo->textCursor();
+   //   cursor = ui->teVisaInfo->textCursor();
    cursor = this->teStat->textCursor();
    QTextCharFormat formatDefault,  //< Object to store default format settings
          formatRHS,      //< Object to store format settings of LHS strings
@@ -1100,7 +1123,7 @@ void Visa::footerRefreshVisa() {
    formatTimeout.setBackground(QBrush(QColor(240, 0, 0)));
 
    /**< Clear and refresh */
-//   ui->teVisaInfo->clear();
+   //   ui->teVisaInfo->clear();
    this->teStat->clear();
    /**< uc firmware */
    cursor.setCharFormat(formatDefault);

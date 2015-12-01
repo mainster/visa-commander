@@ -16,7 +16,7 @@
 class FuGen;
 class VisaReg;
 
-#define  WHEELEVENT_OBJECT_NAME   1
+//#define  WHEELEVENT_OBJECT_NAME   1
 
 FuGen    *FuGen::inst   = 0x00;
 VisaReg  *FuGen::vr     = 0x00;
@@ -59,8 +59,8 @@ FuGen::FuGen(QWidget *parent) :
    connect( this,             SIGNAL(destroyed(QObject*)),
             visa,             SLOT(onChildWidgetDestroyed(QObject*)));
 
-   vr->hwRegs.push_back( vr->regFgenOut );
-   vr->hwRegs.push_back( vr->regFgenFreq );
+//   vr->hwRegs.push_back( vr->regFgenOut );
+//   vr->hwRegs.push_back( vr->regFgenFreq );
 
 }
 
@@ -109,7 +109,7 @@ void FuGen::onConfigChangeTriggered(int idx) {
       genCfg->noiseModel = qvariant_cast<FuGens::noise_typ>(varNoise);
    else return;
 
-   visa->gs.fuGenCfgAltered = true;
+//   visa->gs.changedFuGenCfg = true;
 
 }
 void FuGen::loadSineIntoFPGA() {
@@ -166,8 +166,8 @@ void FuGen::onCyclic() {
    ui->lcdDuty->display( QString::number(genCfg->Duty.float_) + "%");
 
    /** If the fuGen-config-hasChanged flag is set ... */
-   if (visa->gs.fuGenCfgAltered)
-      fillTxReg();
+//   if (visa->gs.fuGenCfgAltered)
+//      fillTxReg();
 }
 /**
  * Change LCD values by wheel scrolling
@@ -234,7 +234,7 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    if (ui->btnLock->isChecked())
       return;
 
-   ioeditL->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
+//   ioeditL->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
 
    if (widName.contains( ui->lcdFreq->objectName() ))
       genCfg->convLCD2freq( event->delta()/(DIV), FuGen::type_increment );
@@ -251,20 +251,29 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
                      tr("Wheel event can't be mapped to a lcd widget") );
          }
 
-   visa->gs.fuGenCfgAltered = true;
-}
-void FuGen::fillTxReg() {
+   /** refresh hw registers */
    vr->regFgenOut->h3037_fugen.out_ampl   = genCfg->Amp.reg16_;
    vr->regFgenOut->h3037_fugen.out_offs   = genCfg->Offs.reg16_;
    vr->regFgenOut->h3037_fugen.out_duty   = genCfg->Duty.reg16_;
    vr->regFgenOut->h3037_fugen.noise_type = (uint8_t) genCfg->noiseModel;
-
    vr->regFgenFreq->h383b_fufreq.dword    = genCfg->Freq.reg32_;
 
-   QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
-   visa->gs.fuGenCfgAltered = false;
-   ioeditL->putTxData( ret );
+   /** This adds changed register to the next TxStream */
+   vr->add2TxStream(vr->regFgenOut);
+   vr->add2TxStream(vr->regFgenFreq);
 }
+//void FuGen::fillTxReg() {
+//   vr->regFgenOut->h3037_fugen.out_ampl   = genCfg->Amp.reg16_;
+//   vr->regFgenOut->h3037_fugen.out_offs   = genCfg->Offs.reg16_;
+//   vr->regFgenOut->h3037_fugen.out_duty   = genCfg->Duty.reg16_;
+//   vr->regFgenOut->h3037_fugen.noise_type = (uint8_t) genCfg->noiseModel;
+
+//   vr->regFgenFreq->h383b_fufreq.dword    = genCfg->Freq.reg32_;
+
+//   QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
+//   visa->gs.fuGenCfgAltered = false;
+//   ioeditL->putTxData( ret );
+//}
 
 /*!
  \brief Convert output amplitude from the lcds physical float representation to

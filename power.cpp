@@ -55,7 +55,8 @@ Power::Power(QWidget *parent) :
    connect( this,          SIGNAL(destroyed(QObject*)),
             visa,          SLOT(onChildWidgetDestroyed(QObject*)));
 
-   vr->hwRegs.push_back( vr->regSetPwr );
+   /** Moved to addCfg2TxStr() */
+//   vr->hwRegs.push_back( vr->regSetPwr );
 
    ui->lcdAutoCtr->setVisible(false);
    ui->btnLock->setChecked(true);
@@ -73,7 +74,7 @@ Power::~Power() {
 }
 
 void Power::onBtnEnNegClicked() {
-   fillTxReg();
+//   fillTxReg();
 }
 void Power::onBtnEnPosClicked() {
 }
@@ -92,8 +93,8 @@ void Power::onCyclic() {
    ui->lcdAmpNeg->display ( supply->Imin.float_.set);
 
    /** If the power config has changed flag is set ... */
-   if (visa->gs.powerCfgAltered)
-      fillTxReg();
+//   if (visa->gs.powerCfgAltered)
+//      fillTxReg();
 }
 /** Setpoint changed */
 void Power::wheelEvent ( QWheelEvent * event ) {
@@ -151,10 +152,6 @@ void Power::wheelEvent ( QWheelEvent * event ) {
    if (ui->btnLock->isChecked())
       return;
 
-   ioeditL->putInfoLine( QString::number( event->delta()/(DIV) ));
-
-   //   V_PER_DIG = ui->lineEdit->text().toInt();
-
    if (widName.contains( ui->lcdVoltPos->objectName() ))
       supply->VplusSet( event->delta()/(DIV) );
    else
@@ -172,30 +169,37 @@ void Power::wheelEvent ( QWheelEvent * event ) {
                         tr("Wheel event can't be mapped to a lcd widget") );
             }
 
-   visa->gs.powerCfgAltered = true;
-}
-void Power::fillTxReg() {
-   /**
-    * 00 00 00 46 70 67 00 05 0008 80 0C A0 03 2D 0C 81 0C A8 0001 62 01 00 05 72 00 00 00 00 00 00 02 BE 30 03 00 47 E0
-    * 05 0008 80 00 00 00 0A 00 00 0F FF 0001 62 01 00 05 72 00 00 00 00 00 00 02 BE 15 00 00 47 E0
-    * 01 0008 80 f9 d0 00 00 00 00 00 00
-    * 00 00 00 46 70 67 00
-    * 04 00 01 62 01 00 05 72 00 00 00 00 00 00 02 BE 15 00 00 47 E0 (11ms)
-    *
-    * 1V ... 10V
-    * 0x0142 0x0286 0x03C9 0x050C 0x0650 0x0793 0x08D6 0x0A1A 0x0B5D 0x0CA0
-    *  322    646     969   1292   1616   1939   2262   2586   2909   3232
-    */
+   /** refresh hw registers */
    vr->regSetPwr->h8087_pows.Vplus_set = supply->Vplus.int_.set;
    vr->regSetPwr->h8087_pows.ILim_plus = supply->Iplus.int_.set;
    vr->regSetPwr->h8087_pows.Vminus_set = supply->Vmin.int_.set;
    vr->regSetPwr->h8087_pows.ILim_minus = supply->Imin.int_.set;
 
-   QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
-   visa->gs.powerCfgAltered = false;
-   ioeditL->putTxData( ret );
-
+   /** This adds changed register to the next TxStream */
+   vr->add2TxStream( vr->regSetPwr );
 }
+//void Power::addCfg2TxStr() {
+//   /**
+//    * 00 00 00 46 70 67 00 05 0008 80 0C A0 03 2D 0C 81 0C A8 0001 62 01 00 05 72 00 00 00 00 00 00 02 BE 30 03 00 47 E0
+//    * 05 0008 80 00 00 00 0A 00 00 0F FF 0001 62 01 00 05 72 00 00 00 00 00 00 02 BE 15 00 00 47 E0
+//    * 01 0008 80 f9 d0 00 00 00 00 00 00
+//    * 00 00 00 46 70 67 00
+//    * 04 00 01 62 01 00 05 72 00 00 00 00 00 00 02 BE 15 00 00 47 E0 (11ms)
+//    *
+//    * 1V ... 10V
+//    * 0x0142 0x0286 0x03C9 0x050C 0x0650 0x0793 0x08D6 0x0A1A 0x0B5D 0x0CA0
+//    *  322    646     969   1292   1616   1939   2262   2586   2909   3232
+//    */
+//   vr->regSetPwr->h8087_pows.Vplus_set = supply->Vplus.int_.set;
+//   vr->regSetPwr->h8087_pows.ILim_plus = supply->Iplus.int_.set;
+//   vr->regSetPwr->h8087_pows.Vminus_set = supply->Vmin.int_.set;
+//   vr->regSetPwr->h8087_pows.ILim_minus = supply->Imin.int_.set;
+
+////   QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
+////   visa->gs.powerCfgAltered = false;
+////   ioeditL->putTxData( ret );
+
+//}
 void Power::onAppFocusChanged(QWidget *old,
                               QWidget *now) {
    if (old == 0 && isAncestorOf(now) == true)

@@ -132,7 +132,9 @@ private:
 /* ======================================================================== */
 class Reg_0609 : public HwReg {
 
-   explicit Reg_0609() {}
+   explicit Reg_0609() {
+   h0609_RAM_Addr.dword = 0x00;
+}
 
 public:
 
@@ -180,7 +182,9 @@ private:
 /* ======================================================================== */
 class Reg_0a0d : public HwReg {
 
-   explicit Reg_0a0d() {}
+   explicit Reg_0a0d() {
+   h0a0d_trig_ev.dist = 0x00;
+}
 
 public:
    static Reg_0a0d * pObj() {
@@ -231,7 +235,9 @@ private:
 /* ======================================================================== */
 class Reg_1017 : public HwReg {
 
-   explicit Reg_1017() {}
+   explicit Reg_1017() {
+   h1017_adcPwr.lword = 0x00;
+}
 
 public:
 
@@ -284,7 +290,9 @@ private:
 /* ======================================================================== */
 class Reg_181f : public HwReg {
 
-   explicit Reg_181f() {}
+   explicit Reg_181f() {
+   h181f_dvm.lword = 0x00;
+}
 
 public:
 
@@ -381,7 +389,9 @@ private:
 /* ======================================================================== */
 class Reg_3037 : public HwReg {
 
-   explicit Reg_3037() {}
+   explicit Reg_3037() {
+   h3037_fugen.lword = 0x00;
+}
 
 public:
    static Reg_3037 * pObj() {
@@ -444,7 +454,9 @@ private:
 /* ======================================================================== */
 class Reg_383b : public HwReg {
 
-   explicit Reg_383b() {}
+   explicit Reg_383b() {
+   h383b_fufreq.dword = 0x00;
+}
 
 public:
    static Reg_383b * pObj() {
@@ -509,7 +521,9 @@ class Reg_6063 : public HwReg {
     * pointer before it is returned to the caller.
     *
     */
-   explicit Reg_6063() {}
+   explicit Reg_6063() {
+   h6063_scopeXA.dword = 0x00;
+}
 
 public:
 
@@ -569,7 +583,9 @@ private:
 /* ======================================================================== */
 class Reg_7073 : public HwReg {
 
-   explicit Reg_7073() {}
+   explicit Reg_7073() {
+   h7073_CH1_pos.dword = 0x00;
+}
 
 public:
    static Reg_7073 * pObj() {
@@ -625,7 +641,9 @@ private:
 /* ======================================================================== */
 class Reg_7477 : public HwReg {
 
-   explicit Reg_7477() {}
+   explicit Reg_7477() {
+   h7477_CH2_pos.dword = 0x00;
+}
 
 public:
    static Reg_7477 * pObj() {
@@ -677,7 +695,9 @@ private:
 /* ======================================================================== */
 class Reg_8087 : public HwReg {
 
-   explicit Reg_8087() {}
+   explicit Reg_8087() {
+   h8087_pows.lword = 0x00;
+}
 
 public:
    static Reg_8087 * pObj() {
@@ -741,7 +761,9 @@ private:
 /* ======================================================================== */
 class Reg_8a8b : public HwReg {
 
-   explicit Reg_8a8b() {}
+   explicit Reg_8a8b() {
+   h8a8b_rng.word = 0x00;
+}
 
 public:
    static Reg_8a8b * pObj() {
@@ -813,7 +835,9 @@ private:
 /* ======================================================================== */
 class Reg_bebf : public HwReg {
 
-   explicit Reg_bebf() {}
+   explicit Reg_bebf() {
+   hbebf_led.word = 0x00;
+}
 
 public:
 

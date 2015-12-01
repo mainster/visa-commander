@@ -139,23 +139,25 @@ public:
     * Global state structure
     */
    struct globalState {
-      bool        reReqRamDataf;           ///< boolean to control if another reqRam seq should be transmitted
-      int         reqRamCtr;
-      QByteArray  rseqA, rseqB;
-      enum CFG_LED    ledState;
-      int         txInStdbyCtr;
-      bool        activeRxTimeout;
+//      bool        reReqRamDataf;           ///< boolean to control if another reqRam seq should be transmitted
+//      int         reqRamCtr;
+//      QByteArray  rseqA, rseqB;
+//      enum CFG_LED    ledState;
+//      int         txInStdbyCtr;
+//      bool        activeRxTimeout;
+//      int         numReadlastTransmission;    ///< Holds the true count of received bytes
+//      QByteArray  differIdx;
+//      int         hbeatsCtr;
       bool        blockOnReadyRead;
-      int         numReadlastTransmission;    ///< Holds the true count of received bytes
-      QByteArray  differIdx;
       bool        errorHandleractive;
       bool        hw_xxx_dat_loaded;
       bool        calibrated;
-      int         hbeatsCtr;
-      bool        powerCfgAltered;
-      bool        fuGenCfgAltered;
+//      bool        changedPowerCfg;
+//      bool        changedFuGenCfg;
    };
-   globalState gs;
+
+   /*extern*/ globalState gs ;
+
 
    /**
     * Hardware dependent factors read from hardware_197000.dat
@@ -284,9 +286,9 @@ private:
    Register *regFrm;
    Driver   *driver;
    IOEdit   *ioeditL, *ioeditR;
-   VisaReg  *visareg;
+   VisaReg  *vr;
    Dvm      *dvmDc, *dvmAcDc;
-   FuGen    *fugen;
+   FuGen    *fug;
    Calc     *calc;
    Power    *pwr;
 
