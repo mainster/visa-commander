@@ -186,8 +186,6 @@ public slots:
    void wheelEvent(QWheelEvent *event);
    void onAppFocusChanged(QWidget* old, QWidget* now);
    void onfocGuard();
-   void fillTxReg();
-
 protected:
 
 private:

@@ -237,7 +237,6 @@ public:
 public slots:
    void onCyclic();
    void wheelEvent(QWheelEvent *event);
-   void fillTxReg();
    void onBtnOnOffClicked();
    void onConfigChangeTriggered(int idx = -1);
    void loadSineIntoFPGA();

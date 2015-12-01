@@ -378,6 +378,11 @@ public:
       RetFormBIN
    };
 
+   enum HwRegRef {
+      HwRegRef_clear,      //< This clears the hwRegs object after write
+      HwRegRef_hold
+   };
+
    QVector<HwReg*> hwRegs;
 
    void sortForAddrs( QVector<HwReg *> &data );
@@ -385,7 +390,9 @@ public:
                               bool subdividedStream = 1 );
 
    QByteArray writeToReg( QVector<HwReg *> &regObj,
-                          RetFormat retFormat = RetFormBIN );
+                          RetFormat retFormat = RetFormBIN,
+                          HwRegRef sourceObj = HwRegRef_hold
+                          );
 
    bool procVisaInfo(QByteArray &raw);
    QVector<uint16_t> convertCalib(QString in, uint8_t nCharPack);
@@ -456,6 +463,7 @@ public slots:
    void reqInitialRegState(ushort regCnt = 0x9f);
 
    void onRxRespInitalRegStateCmpl(QByteArray &rxdata);
+   void add2TxStream(HwReg *reg);
 signals:
    /** After hardware_xxx.dat file processed successfully AND the EEPROM
     * contents also is available, emit calibInfoAvailable() due to signal

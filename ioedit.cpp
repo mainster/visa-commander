@@ -231,6 +231,11 @@ void IOEdit::onwWheelDeltaReceived(QPoint delta) {
 
  \param data
 */
+void IOEdit::putTxData(const QByteArray &data) {
+   QString dataHex = data.toHex();
+   putTxData( dataHex );
+}
+
 void IOEdit::putTxData(const QString &data) {
    QString tmp;
 
