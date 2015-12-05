@@ -33,7 +33,8 @@ SOURCES += main.cpp\
     power.cpp \
     fugen.cpp \
     mqtimer.cpp \
-    mdstatebar.cpp
+    mdstatebar.cpp \
+    eventhdl.cpp
 
 HEADERS  += mainwindow.h \
     visareg.h \
@@ -53,7 +54,8 @@ HEADERS  += mainwindow.h \
     power.h \
     mqtimer.h \
     fugen.h \
-    mdstatebar.h
+    mdstatebar.h \
+    eventhdl.h
 
 FORMS    += mainwindow.ui \
     portdialog.ui \

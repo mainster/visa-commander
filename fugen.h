@@ -7,9 +7,12 @@
 #include <QTime>
 #include <qmath.h>
 #include <stdint.h>
+#include <QProcess>
 
 #include "hwreg.h"
 #include "globals.h"
+#include "eventhdl.h"
+
 
 namespace Ui {
 class FuGen;
@@ -19,7 +22,7 @@ class FuGen;
 class VisaReg;
 class Visa;
 class IOEdit;
-
+class EventHdl;
 
 /*!
  \brief Class FuGen provides a configuration and setpoint interface to the DDS
@@ -234,21 +237,31 @@ public:
    uint16_t calcOffsRegVal(double physOffs);
    static double Kx(FuGens::amp_rngs fRng);
 
+   QLCDNumber *getLcdFreqObj() const;
+   QLCDNumber *getLcdAmpObj() const;
+   QLCDNumber *getLcdOffsObj() const;
+   QLCDNumber *getLcdDutyObj() const;
+   QList<QLCDNumber *> getLcdObjs() const;
+
 public slots:
    void onCyclic();
-   void wheelEvent(QWheelEvent *event);
    void onBtnOnOffClicked();
    void onConfigChangeTriggered(int idx = -1);
    void loadSineIntoFPGA();
    static FuGens::amp_rngs calcAmp_rng();
 
+
+protected:
+   void wheelEvent(QWheelEvent *event);
+   bool eventFilter(QObject *obj, QEvent *ev);
+
 private:
    Ui::FuGen   *ui;
    QTimer      *timCycl;
-
-   IOEdit *ioeditL, *ioeditR;
-
+   IOEdit      *ioeditL, *ioeditR;
    Visa        *visa;
+   EventHdl    *evHdl;
+//   QLCDNumber  *fgLcdFreq, *fgLcdAmp, *fgLcdOffs, *fgLcdDuty;
    int         mouseWheelCnt;
 
    double

@@ -1,13 +1,12 @@
-#include <QTime>
+﻿#include <QTime>
 #include <QTimer>
 #include <QInputDialog>
 #include <QDebug>
 #include <QIcon>
 #include <typeinfo>
-
+#include <QKeySequence>
 #include "ui_fugen.h"
 #include "fugen.h"
-
 #include "globals.h"
 #include "ioedit.h"
 #include "visareg.h"
@@ -39,14 +38,20 @@ FuGen::FuGen(QWidget *parent) :
    timCycl->setInterval( INTERVAL_LCD * 1e3 );
    timCycl->start();
 
-   genCfg = new FuGen::genCfg_t();
-
+   genCfg   = new FuGen::genCfg_t();
    vr       = VisaReg::getObjectPtr();
-
    ioeditL  = IOEdit::getObjectPtr();
    visa     = Visa::getObjectPtr();
 
    initUiElements();
+
+   /** Install FuGen::eventfilter(..) */
+   //   evHdl = new EventHdl(this);
+   installEventFilter( this );
+   //   ui->lcdFreq->installEventFilter( this );
+   //   ui->lcdAmp->installEventFilter( this );
+   //   ui->lcdOffs->installEventFilter( this );
+   //   ui->lcdDuty->installEventFilter( this );
 
    connect( timCycl,          SIGNAL(timeout()),
             this,             SLOT(onCyclic()));
@@ -58,9 +63,6 @@ FuGen::FuGen(QWidget *parent) :
             this,             SLOT(onConfigChangeTriggered(int)));
    connect( this,             SIGNAL(destroyed(QObject*)),
             visa,             SLOT(onChildWidgetDestroyed(QObject*)));
-
-//   vr->hwRegs.push_back( vr->regFgenOut );
-//   vr->hwRegs.push_back( vr->regFgenFreq );
 
 }
 
@@ -109,7 +111,7 @@ void FuGen::onConfigChangeTriggered(int idx) {
       genCfg->noiseModel = qvariant_cast<FuGens::noise_typ>(varNoise);
    else return;
 
-//   visa->gs.changedFuGenCfg = true;
+   //   visa->gs.changedFuGenCfg = true;
 
 }
 void FuGen::loadSineIntoFPGA() {
@@ -158,6 +160,27 @@ double FuGen::Kx(FuGens::amp_rngs fRng) {
    return 0.0;
 }
 
+QLCDNumber *FuGen::getLcdFreqObj() const {
+   return ui->lcdFreq;
+}
+QLCDNumber *FuGen::getLcdAmpObj() const {
+   return ui->lcdAmp;
+}
+QLCDNumber *FuGen::getLcdOffsObj() const {
+   return ui->lcdOffs;
+}
+QLCDNumber *FuGen::getLcdDutyObj() const {
+   return ui->lcdDuty;
+}
+QList<QLCDNumber *> FuGen::getLcdObjs() const {
+   QList<QLCDNumber *> lcdLst;
+   lcdLst << ui->lcdFreq
+          << ui->lcdAmp
+          << ui->lcdOffs
+          << ui->lcdDuty;
+   return lcdLst;
+}
+
 void FuGen::onCyclic() {
    /** Refresh lcd views */
    ui->lcdFreq->display( QString::number(genCfg->Freq.float_) + "Hz" );
@@ -166,8 +189,8 @@ void FuGen::onCyclic() {
    ui->lcdDuty->display( QString::number(genCfg->Duty.float_) + "%");
 
    /** If the fuGen-config-hasChanged flag is set ... */
-//   if (visa->gs.fuGenCfgAltered)
-//      fillTxReg();
+   //   if (visa->gs.fuGenCfgAltered)
+   //      fillTxReg();
 }
 /**
  * Change LCD values by wheel scrolling
@@ -187,7 +210,7 @@ void FuGen::onCyclic() {
  *    => MAX_TICKS_V_AMP = 150
  *    => DELTA_TICK_V_AMP = 8V / 150 = 53.33 mV/Tick
  */
-void FuGen::wheelEvent ( QWheelEvent * event ) {
+void FuGen::wheelEvent ( QWheelEvent *event ) {
    /**
     * query current keyboard modifiers so we can gain the functionality of
     * "page scrolling". This means without CTRL modifier, normal step width is
@@ -234,7 +257,7 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    if (ui->btnLock->isChecked())
       return;
 
-//   ioeditL->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
+   //   ioeditL->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
 
    if (widName.contains( ui->lcdFreq->objectName() ))
       genCfg->convLCD2freq( event->delta()/(DIV), FuGen::type_increment );
@@ -262,18 +285,55 @@ void FuGen::wheelEvent ( QWheelEvent * event ) {
    vr->add2TxStream(vr->regFgenOut);
    vr->add2TxStream(vr->regFgenFreq);
 }
-//void FuGen::fillTxReg() {
-//   vr->regFgenOut->h3037_fugen.out_ampl   = genCfg->Amp.reg16_;
-//   vr->regFgenOut->h3037_fugen.out_offs   = genCfg->Offs.reg16_;
-//   vr->regFgenOut->h3037_fugen.out_duty   = genCfg->Duty.reg16_;
-//   vr->regFgenOut->h3037_fugen.noise_type = (uint8_t) genCfg->noiseModel;
+bool FuGen::eventFilter(QObject *obj, QEvent *ev) {
+   QLCDNumber *oLcd = static_cast<QLCDNumber *>( obj );
 
-//   vr->regFgenFreq->h383b_fufreq.dword    = genCfg->Freq.reg32_;
+   if (! oLcd)
+      return QObject::eventFilter(obj, ev);
 
-//   QByteArray ret = vr->writeToReg(vr->hwRegs, VisaReg::RetFormBIN);
-//   visa->gs.fuGenCfgAltered = false;
-//   ioeditL->putTxData( ret );
-//}
+   /** Check the event type */
+   if ((ev->type() == QEvent::KeyPress) ||
+       (ev->type() == QEvent::KeyRelease)) {
+      QKeyEvent *kev = static_cast<QKeyEvent *>( ev );
+
+      /** Return and print out error msg if static cast returns 0 */
+      if (! kev) {
+         Q_INFO << "ev->type() == QEvent::KeyPress but QKeyEvent cast failed";
+         return QObject::eventFilter(obj, ev);
+      }
+
+      QStringList kNumeric, kMult;
+
+      for (int i = 0; i <= 9; i++)
+         kNumeric << QString::number(i);
+
+      kMult << "u" << "m" << "k";
+
+      if (kNumeric.contains(kev->text()))
+         Q_INFO << "Keyxx Event" << kev->text();
+
+      /* ---------------------------------------------------------------- */
+      /*         Get the name of object under the mouse pointer           */
+      /* ---------------------------------------------------------------- */
+      //      QWidget *widget = qApp->widgetAt(QCursor::pos());
+      //      if (widget != 0x00) {
+
+      if (oLcd.contains(ui->lcdFreq->objectName() )) {
+
+         return true;
+      }
+      if (oLcd.contains(ui->lcdFreq->objectName() )) {
+         return true;
+      }
+      if (oLcd.contains(ui->lcdFreq->objectName() )) {
+         return true;
+      }
+      if (oLcd.contains(ui->lcdFreq->objectName() )) {
+         return true;
+      }
+   }
+   return QObject::eventFilter(obj, ev);
+}
 
 /*!
  \brief Convert output amplitude from the lcds physical float representation to
