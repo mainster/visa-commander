@@ -242,7 +242,7 @@ Visa::Visa(QWidget *parent) :
    pTw = ui->tableWidget;
 
 
-   this->installEventFilter( this );
+//   this->installEventFilter( this );
 }
 Visa::~Visa() {
    QSETTINGS;
@@ -415,6 +415,7 @@ bool Visa::savePersistance() {
 /*                     timer slots                                          */
 /* ======================================================================== */
 void Visa::onTimHbeatTimeout() {
+
    /**
     * If calibration was successfull, periodic requests could be
     * transmitted
@@ -775,7 +776,7 @@ void Visa::onSerialBaudChanged(qint32 baud,
 
    QTextCursor cursor( ui->statusBar->getTeStat()->textCursor() );
    //   ui->teStateFooter->setCursorWidth(50);
-   cursor.setPosition(35, QTextCursor::KeepAnchor);
+//   cursor.setPosition(35, QTextCursor::KeepAnchor);
    cursor.setCharFormat(formatLHS);
    cursor.insertText("Baudrate:  ");
    cursor.setCharFormat(formatRHS);
@@ -1318,13 +1319,13 @@ bool Visa::getUiPeriodicReqIsChecked() {
 /* ======================================================================== */
 /*                     Event handler                                      */
 /* ======================================================================== */
-void Visa::keyPressEvent(QKeyEvent *event) {
+void Visa::keyPressEvent(QKeyEvent *ev) {
    bool ok = false;
    int val; int len;
    QString sval;
 
    /** If le8a8b has focus and key f got pressed, change le8a8b format */
-   if ((event->key() == Qt::Key_Escape) &&
+   if ((ev->key() == Qt::Key_Escape) &&
        (ui->le8a8b->hasFocus())) {
       QString s;
       sval = ui->le8a8b->text();
@@ -1358,13 +1359,19 @@ void Visa::keyPressEvent(QKeyEvent *event) {
          }
       }
    }
-   /**
-    * If Enter pressed event detected and the command line uiCommand has
-    * focus, emit a uiCommandQuery signal ...
-    */
-   if ((event->key() == Qt::Key_Enter) &&
-       (ui->uiCmdLine->hasFocus())) {
-      emit uiCmdLineQuery( ui->uiCmdLine->text() );
+   else {
+      /**
+       * If Enter pressed event detected and the command line uiCommand has
+       * focus, emit a uiCommandQuery signal ...
+       */
+      if ((ev->key() == Qt::Key_Enter) &&
+          (ui->uiCmdLine->hasFocus())) {
+         emit uiCmdLineQuery( ui->uiCmdLine->text() );
+      }
+      else {
+         ev->setAccepted( false );
+         QMainWindow::keyPressEvent(ev);
+      }
    }
 }
 void Visa::saveAllGeometrys() {

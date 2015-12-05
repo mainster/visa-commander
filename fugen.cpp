@@ -5,6 +5,8 @@
 #include <QIcon>
 #include <typeinfo>
 #include <QKeySequence>
+#include <QLCDNumber>
+
 #include "ui_fugen.h"
 #include "fugen.h"
 #include "globals.h"
@@ -34,10 +36,6 @@ FuGen::FuGen(QWidget *parent) :
    DVAMP_PER_TICK = (VAMP_MAX - VAMP_MIN)/ VAMP_MAX_TICKS,
          DFOUT_PER_TICK = (FOUT_MAX - FOUT_MIN)/ FOUT_MAX_TICKS;
 
-   timCycl = new QTimer();
-   timCycl->setInterval( INTERVAL_LCD * 1e3 );
-   timCycl->start();
-
    genCfg   = new FuGen::genCfg_t();
    vr       = VisaReg::getObjectPtr();
    ioeditL  = IOEdit::getObjectPtr();
@@ -45,13 +43,29 @@ FuGen::FuGen(QWidget *parent) :
 
    initUiElements();
 
+   lcdFreq  = new LcdDisplay("Freq", this);
+   lcdAmp   = new LcdDisplay("Amp", this);
+   lcdOffs  = new LcdDisplay("Offs", this);
+   lcdDuty  = new LcdDisplay("Duty", this);
+
+   mLcds.append(lcdFreq);
+   mLcds.append(lcdAmp);
+   mLcds.append(lcdOffs);
+   mLcds.append(lcdDuty);
+
+   foreach (LcdDisplay *lcd, mLcds) {
+      ui->vlayLcd->addWidget(lcd, 0, 0);
+   }
+
+   lcdDuty->setEnabled( false );
+
+   timCycl = new QTimer();
+   timCycl->setInterval( INTERVAL_LCD * 1e3 );
+   timCycl->start();
+
+
    /** Install FuGen::eventfilter(..) */
-   //   evHdl = new EventHdl(this);
-   installEventFilter( this );
-   //   ui->lcdFreq->installEventFilter( this );
-   //   ui->lcdAmp->installEventFilter( this );
-   //   ui->lcdOffs->installEventFilter( this );
-   //   ui->lcdDuty->installEventFilter( this );
+   //   installEventFilter( this );
 
    connect( timCycl,          SIGNAL(timeout()),
             this,             SLOT(onCyclic()));
@@ -160,33 +174,46 @@ double FuGen::Kx(FuGens::amp_rngs fRng) {
    return 0.0;
 }
 
-QLCDNumber *FuGen::getLcdFreqObj() const {
-   return ui->lcdFreq;
+LcdDisplay *FuGen::getLcdFreqObj() const {
+   return lcdFreq;
 }
-QLCDNumber *FuGen::getLcdAmpObj() const {
-   return ui->lcdAmp;
+LcdDisplay *FuGen::getLcdAmpObj() const {
+   return lcdAmp;
 }
-QLCDNumber *FuGen::getLcdOffsObj() const {
-   return ui->lcdOffs;
+LcdDisplay *FuGen::getLcdOffsObj() const {
+   return lcdOffs;
 }
-QLCDNumber *FuGen::getLcdDutyObj() const {
-   return ui->lcdDuty;
+LcdDisplay *FuGen::getLcdDutyObj() const {
+   return lcdDuty;
 }
-QList<QLCDNumber *> FuGen::getLcdObjs() const {
-   QList<QLCDNumber *> lcdLst;
-   lcdLst << ui->lcdFreq
-          << ui->lcdAmp
-          << ui->lcdOffs
-          << ui->lcdDuty;
+QList<LcdDisplay *> FuGen::getLcdObjs() const {
+   QList<LcdDisplay *> lcdLst;
+   lcdLst << lcdFreq
+          << lcdAmp
+          << lcdOffs
+          << lcdDuty;
    return lcdLst;
 }
-
+LcdDisplay *FuGen::getSelectedLcd() const {
+   foreach (LcdDisplay *lcd, mLcds) {
+      if ( lcd->isSelected() )
+         return lcd;
+   }
+   return 0;
+}
+QString FuGen::getSelectedLcdNam() const {
+   foreach (LcdDisplay *lcd, mLcds) {
+      if ( lcd->isSelected() )
+         return QString(lcd->objectName());
+   }
+   return "";
+}
 void FuGen::onCyclic() {
    /** Refresh lcd views */
-   ui->lcdFreq->display( QString::number(genCfg->Freq.float_) + "Hz" );
-   ui->lcdAmp ->display( QString::number(genCfg->Amp.float_) + "V");
-   ui->lcdOffs->display( QString::number(genCfg->Offs.float_) + "V");
-   ui->lcdDuty->display( QString::number(genCfg->Duty.float_) + "%");
+   lcdFreq->display( QString::number(genCfg->Freq.float_) + "Hz" );
+   lcdAmp ->display( QString::number(genCfg->Amp.float_) + "V");
+   lcdOffs->display( QString::number(genCfg->Offs.float_) + "V");
+   lcdDuty->display( QString::number(genCfg->Duty.float_) + "%");
 
    /** If the fuGen-config-hasChanged flag is set ... */
    //   if (visa->gs.fuGenCfgAltered)
@@ -210,7 +237,7 @@ void FuGen::onCyclic() {
  *    => MAX_TICKS_V_AMP = 150
  *    => DELTA_TICK_V_AMP = 8V / 150 = 53.33 mV/Tick
  */
-void FuGen::wheelEvent ( QWheelEvent *event ) {
+void FuGen::wheelEvent(QWheelEvent *ev) {
    /**
     * query current keyboard modifiers so we can gain the functionality of
     * "page scrolling". This means without CTRL modifier, normal step width is
@@ -223,7 +250,7 @@ void FuGen::wheelEvent ( QWheelEvent *event ) {
    /**
     * evDelta is a element of [-1, 1]    (Wheel-down, Wheel-Up)
     */
-   short evDelta = (short) (event->delta() / DELTA_NORM);
+   short evDelta = (short) (ev->delta() / DELTA_NORM);
 
    /**
     * Acceleration factor could be x1, x4, x10
@@ -243,8 +270,13 @@ void FuGen::wheelEvent ( QWheelEvent *event ) {
    /* ---------------------------------------------------------------- */
    /*         Get the name of object under the mouse pointer           */
    /* ---------------------------------------------------------------- */
-   QWidget *widget = qApp->widgetAt(QCursor::pos());
-   QString widName = widget->objectName();
+   //   QWidget *widget = qApp->widgetAt(QCursor::pos());
+   //   QString widName = widget->objectName();
+   QString widName;
+   if ((widName = getSelectedLcdNam()).isEmpty())
+      return;
+
+
 #ifdef WHEELEVENT_OBJECT_NAME
    ioeditL->putInfoLine( widName + " " + QString::number(mouseWheelCnt));
 #endif
@@ -259,19 +291,20 @@ void FuGen::wheelEvent ( QWheelEvent *event ) {
 
    //   ioeditL->putInfoLine( QString::number( (double) evDelta*accFact*DVAMP_PER_TICK));
 
-   if (widName.contains( ui->lcdFreq->objectName() ))
-      genCfg->convLCD2freq( event->delta()/(DIV), FuGen::type_increment );
+   if (widName.contains( lcdFreq->objectName() ))
+      genCfg->convLCD2freq( ev->delta()/(DIV), FuGen::type_increment );
    else
-      if (widName.contains( ui->lcdAmp->objectName() ))
+      if (widName.contains( lcdAmp->objectName() ))
          genCfg->convLCD2amp( (double) evDelta * accFact * DVAMP_PER_TICK,
                               FuGen::type_increment );
       else
-         if (widName.contains( ui->lcdOffs->objectName() ))
-            genCfg->convLCD2offs( event->delta()/(DIV), FuGen::type_increment );
+         if (widName.contains( lcdOffs->objectName() ))
+            genCfg->convLCD2offs( ev->delta()/(DIV), FuGen::type_increment );
          else {
             Q_INFO << tr("Wheel event can't be mapped to an lcd widget");
             ioeditL->putInfoLine(
-                     tr("Wheel event can't be mapped to a lcd widget") );
+                     tr("Wheel event can't be mapped to a lcd widget:")
+                     + widName);
          }
 
    /** refresh hw registers */
@@ -285,56 +318,15 @@ void FuGen::wheelEvent ( QWheelEvent *event ) {
    vr->add2TxStream(vr->regFgenOut);
    vr->add2TxStream(vr->regFgenFreq);
 }
-bool FuGen::eventFilter(QObject *obj, QEvent *ev) {
-   QLCDNumber *oLcd = static_cast<QLCDNumber *>( obj );
+void FuGen::handleKeyPressEvent(QKeyEvent *ev) {
+   ev->setAccepted(false);
+   return;
 
-   if (! oLcd)
-      return QObject::eventFilter(obj, ev);
 
-   /** Check the event type */
-   if ((ev->type() == QEvent::KeyPress) ||
-       (ev->type() == QEvent::KeyRelease)) {
-      QKeyEvent *kev = static_cast<QKeyEvent *>( ev );
-
-      /** Return and print out error msg if static cast returns 0 */
-      if (! kev) {
-         Q_INFO << "ev->type() == QEvent::KeyPress but QKeyEvent cast failed";
-         return QObject::eventFilter(obj, ev);
-      }
-
-      QStringList kNumeric, kMult;
-
-      for (int i = 0; i <= 9; i++)
-         kNumeric << QString::number(i);
-
-      kMult << "u" << "m" << "k";
-
-      if (kNumeric.contains(kev->text()))
-         Q_INFO << "Keyxx Event" << kev->text();
-
-      /* ---------------------------------------------------------------- */
-      /*         Get the name of object under the mouse pointer           */
-      /* ---------------------------------------------------------------- */
-      //      QWidget *widget = qApp->widgetAt(QCursor::pos());
-      //      if (widget != 0x00) {
-
-      if (oLcd.contains(ui->lcdFreq->objectName() )) {
-
-         return true;
-      }
-      if (oLcd.contains(ui->lcdFreq->objectName() )) {
-         return true;
-      }
-      if (oLcd.contains(ui->lcdFreq->objectName() )) {
-         return true;
-      }
-      if (oLcd.contains(ui->lcdFreq->objectName() )) {
-         return true;
-      }
+   if (ev->key() == Qt::Key_Escape) {
+      Q_INFO << ev->text();
    }
-   return QObject::eventFilter(obj, ev);
 }
-
 /*!
  \brief Convert output amplitude from the lcds physical float representation to
  the corresponding 12-Bit register value
@@ -352,7 +344,10 @@ long FuGen::genCfg_t::convLCD2amp(double dVamp, FuGen::add_type type) {
 
    if (type == FuGen::type_increment)
       Amp.float_  += dVamp;
-   else Amp.float_ = dVamp;
+   if (type == FuGen::type_decadeShift)
+      Amp.float_ = Amp.float_ * 10 + dVamp;
+   if (type == FuGen::type_replace)
+      Amp.float_ = dVamp;
 
    /**
     * Setpoint limit, Vpp range [0, 8Vpp]
@@ -406,7 +401,10 @@ long FuGen::genCfg_t::convLCD2freq(double dFreq, FuGen::add_type type) {
 
    if (type == FuGen::type_increment)
       Freq.float_ += dFreq;
-   else Freq.float_ = dFreq;
+   if (type == FuGen::type_decadeShift)
+      Freq.float_ = Freq.float_ * 10 + dFreq;
+   if (type == FuGen::type_replace)
+      Freq.float_ = dFreq;
 
    /**
     * Range check according to page 54
@@ -444,7 +442,11 @@ long FuGen::genCfg_t::convLCD2offs(double dVoffs, FuGen::add_type type) {
 
    if (type == FuGen::type_increment)
       Offs.float_  += dVoffs;
-   else Offs.float_ = dVoffs;
+   if (type == FuGen::type_decadeShift)
+      Offs.float_ = Offs.float_ * 10 + dVoffs;
+   if (type == FuGen::type_replace)
+      Offs.float_ = dVoffs;
+
 
    /**
     * Range check according to page 56, 12.4
@@ -488,7 +490,10 @@ long FuGen::genCfg_t::convLCD2duty(double dDuty, FuGen::add_type type) {
 
    if (type == FuGen::type_increment)
       Duty.float_  += dDuty;
-   else Duty.float_ = dDuty;
+   if (type == FuGen::type_decadeShift)
+      Duty.float_ = Duty.float_ * 10 + dDuty;
+   if (type == FuGen::type_replace)
+      Duty.float_ = dDuty;
 
    /**
     * Range check duty cycle value, 0 ... 100 [%]

@@ -255,7 +255,7 @@ public slots:
    bool getUiPeriodicReqIsChecked();
    void setUiPeriodicReqChecked(bool b);
    void onActFuGenTriggered(bool onoff);
-   void keyPressEvent(QKeyEvent *);
+   void keyPressEvent(QKeyEvent *ev);
    void showEvent(QShowEvent *);
    void closeEvent(QCloseEvent *);
    void restoreAllGeometrys();
