@@ -34,7 +34,8 @@ SOURCES += main.cpp\
     fugen.cpp \
     mqtimer.cpp \
     mdstatebar.cpp \
-    lcddisplay.cpp
+    lcddisplay.cpp \
+    globals.cpp
 
 HEADERS  += mainwindow.h \
     visareg.h \

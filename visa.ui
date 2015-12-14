@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1301</width>
+    <width>1256</width>
     <height>631</height>
    </rect>
   </property>
@@ -18,8 +18,17 @@
     <normaloff>:/images/VS.png</normaloff>:/images/VS.png</iconset>
   </property>
   <widget class="QWidget" name="visaWidget">
-   <layout class="QGridLayout" name="gridLayout_8">
-    <item row="0" column="0">
+   <layout class="QVBoxLayout" name="verticalLayout_4">
+    <property name="spacing">
+     <number>10</number>
+    </property>
+    <property name="topMargin">
+     <number>6</number>
+    </property>
+    <property name="bottomMargin">
+     <number>5</number>
+    </property>
+    <item>
      <widget class="QSplitter" name="splCent">
       <property name="orientation">
        <enum>Qt::Horizontal</enum>
@@ -32,7 +41,7 @@
         </size>
        </property>
        <property name="currentIndex">
-        <number>0</number>
+        <number>3</number>
        </property>
        <widget class="QWidget" name="tabOutput">
         <attribute name="title">
@@ -1098,7 +1107,7 @@ background-color: rgb(195, 195, 195);</string>
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horzLaySendLine" stretch="8,0,6,1">
+         <layout class="QHBoxLayout" name="horzLaySendLine" stretch="5,5,5,1">
           <item>
            <widget class="QPlainTextEdit" name="transEdit">
             <property name="sizePolicy">
@@ -1314,6 +1323,19 @@ background-color: rgb(230, 230, 230);</string>
       </widget>
      </widget>
     </item>
+    <item>
+     <widget class="Line" name="line_4">
+      <property name="frameShadow">
+       <enum>QFrame::Sunken</enum>
+      </property>
+      <property name="lineWidth">
+       <number>2</number>
+      </property>
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -1321,8 +1343,8 @@ background-color: rgb(230, 230, 230);</string>
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1301</width>
-     <height>27</height>
+     <width>1256</width>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1374,7 +1396,7 @@ background-color: rgb(230, 230, 230);</string>
    <addaction name="menuParser_Config"/>
    <addaction name="menuVisa_COnfig"/>
   </widget>
-  <widget class="QToolBar" name="toolBar">
+  <widget class="QToolBar" name="toolBarCtrls">
    <property name="windowTitle">
     <string>toolBar</string>
    </property>
@@ -1397,19 +1419,6 @@ background-color: rgb(230, 230, 230);</string>
    <addaction name="actionQuit"/>
    <addaction name="separator"/>
   </widget>
-  <widget class="MDStateBar" name="statusBar"/>
-  <widget class="QDockWidget" name="dockWidget_2">
-   <property name="maximumSize">
-    <size>
-     <width>40</width>
-     <height>524287</height>
-    </size>
-   </property>
-   <attribute name="dockWidgetArea">
-    <number>2</number>
-   </attribute>
-   <widget class="QWidget" name="dockWidgetContents_2"/>
-  </widget>
   <widget class="QToolBar" name="toolBar_2">
    <property name="windowTitle">
     <string>toolBar_2</string>
@@ -1429,6 +1438,17 @@ background-color: rgb(230, 230, 230);</string>
    <addaction name="actionModeSniffer"/>
    <addaction name="actionChildsToDbg"/>
    <addaction name="actionSnapShot"/>
+  </widget>
+  <widget class="MDStateBar" name="statusBar">
+   <property name="autoFillBackground">
+    <bool>true</bool>
+   </property>
+   <property name="styleSheet">
+    <string notr="true">QStatusbar {
+	
+	background-color: rgb(255, 0, 0);
+}</string>
+   </property>
   </widget>
   <action name="actionAbout">
    <property name="text">

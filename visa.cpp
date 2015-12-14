@@ -117,6 +117,8 @@ Visa::Visa(QWidget *parent) :
    ui->setupUi(this);
 
    newParent = parent;
+   Globals *glob = Globals::getInstance();
+//   glob->initGlobals();
 
    QSETTINGS;
    le8a8bForm = Visa::form_bin;
@@ -163,12 +165,9 @@ Visa::Visa(QWidget *parent) :
    sniffTim->reload(0);
 #endif
 
-
-   //   /** Embedd the ioedit's instance widget into visa window */
+   /** Embedd the ioedit's instance widget into visa window */
    ui->splIOEd->addWidget( this->ioeditL );
    ui->splIOEd->addWidget( this->ioeditR );
-
-
 
    /**
     * Custom / User sequence timer. Periodically repeats the transmission
@@ -230,19 +229,11 @@ Visa::Visa(QWidget *parent) :
    //   timRefresh->start();
    refreshGS();
 
-#ifdef AUTORUN
-   QTimer::singleShot(100, Qt::PreciseTimer, this, SLOT(autoRunTimerSLOT()));
-#endif
-
-
    /** Start program heartbeat */
    hbeat->tim->start();
 
-
    pTw = ui->tableWidget;
-
-
-//   this->installEventFilter( this );
+   //   this->installEventFilter( this );
 }
 Visa::~Visa() {
    QSETTINGS;

@@ -12,7 +12,9 @@
 #include "calc.h"
 #include "ioedit.h"
 #include "filebackup.h"
+#include "mdstatebar.h"
 
+class Globals;
 class Calc;
 
 Calc* Calc::inst = 0x00;
@@ -27,6 +29,7 @@ Calc::Calc(QWidget *parent) :
 
    ioeditL  = IOEdit::getInstance(parent);
    visareg  = VisaReg::getObjectPtr();
+   glob     = Globals::getObjPtr();
    eepromRx = new QVector<uint16_t>(100);
 }
 Calc::~Calc() {
@@ -34,10 +37,36 @@ Calc::~Calc() {
 }
 
 void Calc::onCalibInfoAvailable() {
-   if (mathAdjustment(cCalib, *eepromRx))
-      Q_INFO << "call to mathAdjustment() returns error!";
-   else
-      ioeditL->putInfoLine("Calibration successful");
+   MDStateBar *sb = MDStateBar::getObjectPtr();
+   QString s;
+
+   for(int retrys = 3; retrys != 0; retrys--) {
+      Calc::retVals rv = mathAdjustment(cCalib, *eepromRx);
+
+      if (rv == Calc::ret_successfull) {
+         s = tr("Calibration successfull!");
+         sb->showInfo(s, 5000);
+         ioeditL->putInfoLine( s );
+         Q_INFO << s;
+         return;
+      }
+
+      if ( rv == (Calc::ret_fail | Calc::ret_bad_path_to_hwDat) || (! retrys)) {
+         s = tr("Calibration failed, bad path to hw_xxx.dat?");
+         sb->showError(s, 5000);
+         ioeditR->putInfoLine( s );
+         Q_INFO << s;
+         return;
+      }
+
+      if ( rv != Calc::ret_path_of_hwDat_changed ) {
+         s = tr("Calibration failed, unknown state!");
+         sb->showError(s, 0);
+         ioeditR->putInfoLine( s );
+         Q_INFO << s;
+         return;
+      }
+   }
 }
 
 /**
@@ -100,8 +129,8 @@ void Calc::onCalibInfoAvailable() {
  * values which are needed for proper conversion between digital and physical
  * measurement domains.
  */
-int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
-                          QVector<uint16_t> &Ctol) {
+Calc::retVals Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
+                              QVector<uint16_t> &Ctol) {
    int i; bool ok = false;
 
    QVector<hw_calib_t>::iterator it;
@@ -147,7 +176,6 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
          }
          else
             it->T = 0;
-
       }
 
       /**
@@ -158,20 +186,20 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
        * H(i)_corr = H(i)_hardware_xxx.dat + T *[ C(i)/32000 - 1 ]
        */
       switch (it->type) {
-         case Calc::relativ:  {
-            it->H = it->Hd * (1 + it->T/100 * ((float) it->C/ 32000 - 1));
-         }; break;
+      case Calc::relativ:  {
+         it->H = it->Hd * (1 + it->T/100 * ((float) it->C/ 32000 - 1));
+      }; break;
 
-         case Calc::absolut:  {
-            it->H = it->Hd + it->T * ((float) it->C/ 32000 - 1);
-         }; break;
+      case Calc::absolut:  {
+         it->H = it->Hd + it->T * ((float) it->C/ 32000 - 1);
+      }; break;
 
-         case Calc::none:  {
-            it->H = it->Hd;
-         }; break;
-         default: {
-            qDebug() << "BAD CASE!!!!!";
-         }; break;
+      case Calc::none:  {
+         it->H = it->Hd;
+      }; break;
+      default: {
+         qDebug() << "BAD CASE!!!!!";
+      }; break;
       }
 
       it++;
@@ -221,9 +249,9 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
    }
 
    foreach (hw_calib_t hwc, hwCal) {
-//      tabItms.append( new QTableWidgetItem( s.sprintf("H%02x", rctr)) );
-//      tabItms.last()->setFont( fnt );
-//      visa->pTw->setVerticalHeaderItem(rctr, tabItms.last());
+      //      tabItms.append( new QTableWidgetItem( s.sprintf("H%02x", rctr)) );
+      //      tabItms.last()->setFont( fnt );
+      //      visa->pTw->setVerticalHeaderItem(rctr, tabItms.last());
 
       tabItms.append( new QTableWidgetItem( s.sprintf("H%02x", rctr)) );
       visa->pTw->setItem(rctr, cctr++, tabItms.last());
@@ -256,22 +284,52 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
 
    /** Backup the prior used hardware_xxx.dat file */
    /*QString bkpFile = */
-   QString bkpFile = FileBackup::doBackup(DEFAULT_DAT_FILE);
+   QString bkpFile = FileBackup::doBackup(glob->getPathToDat());
+   QString selDat, selBack;
+   QWidget * ww = new QWidget(0);
 
    /** Reopen the prior used hardware_xxx.dat file and append the corrections */
-   QFile fd(DEFAULT_DAT_FILE);
-   if (! fd.open(QIODevice::ReadOnly | QIODevice::Text))
-      return -1;
+   QFile fd( glob->getPathToDat() );
+
+   if (! fd.open(QIODevice::ReadOnly | QIODevice::Text)) {
+      ioeditL->putInfoLine("Calibration file hardware_xx.dat is not accessible "
+                           "at the configured path.");
+
+      selDat = QFileDialog::getOpenFileName(ww, "Open hardware_xx.dat calibration file",
+                                            "$HOME/", tr("dat-files (*.dat *.txt)"));
+
+      if (! selDat.isEmpty()) {
+         glob->setPathToDat( selDat );
+         return Calc::ret_path_of_hwDat_changed;
+//         fd.setFileName( selDat );
+      }
+      else
+         return Calc::ret_bad_path_to_hwDat;
+
+   }
 
    /** Open temporary file */
-   //   QFile fw(tr("/tmp/visacommand_") + QTime::currentTime()
-   //            .toString("hh:mm:ss").remove(":"));
-   QFile fw(tr("/tmp/visacommand_tmp"));
+   QFile fw(DEFAULT_BACKUP_PATH);
 
-   if (! fw.open(QIODevice::ReadWrite | QIODevice::Text)) {
-      fd.close();
-      return -1;
+   while (! fw.open(QIODevice::ReadWrite | QIODevice::Text)) {
+      ioeditL->putInfoLine("No permission to write backup file "
+                           "at the configured path.");
+      selBack = QFileDialog::getSaveFileName(ww, "Save backup file", "/tmp/",
+                                             tr("dat-files (*.dat *.txt)"));
+
+      if (! selBack.isEmpty()) {
+         glob->setPathToBackup( selBack );
+         return Calc::ret_path_of_hwDat_changed;
+//         fw.setFileName( selBack );
+      }
+      else
+         return Calc::ret_bad_path_to_hwDat;
    }
+
+   /** At this point, the both paths are definitely correct */
+   QSETTINGS;
+   config.setValue(tr("paths/pathToDat"), glob->getPathToDat());
+   config.setValue(tr("paths/pathToBackup"), glob->getPathToBackup());
 
    QTextStream fout(&fw);
    QString line;
@@ -304,7 +362,7 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
 
       if (idx + 1 >= hwCal.length()) {
          Q_INFO << "Bad value found for indexing vector, return -1";
-         return -1;
+         return Calc::ret_fail;
       }
 
       if (ok) {
@@ -325,9 +383,9 @@ int Calc::mathAdjustment( QVector<hw_calib_t> &hwCal,
    /** single vector of tolerance adusted calibration data */
    for (int j=0; j < hwCal.length(); j++)
       visareg->H.append( hwCal[j].H );
-   return 0;
-}
 
+   return Calc::ret_successfull;
+}
 int Calc::loadHardwareDat(QString path) {
    QStringList lst; QByteArray line;
    int i;
@@ -373,16 +431,14 @@ int Calc::loadHardwareDat(QString path) {
 
    return 0;
 }
-
 void Calc::loadHardwareDat() {
-   if (loadHardwareDat(DEFAULT_DAT_FILE) < 0)
+   if (loadHardwareDat(glob->getPathToDat()) < 0)
       qDebug() << "load hardware_dat failed!";
    else {
       visa = Visa::getObjectPtr();
       visa->gs.hw_xxx_dat_loaded = true;
    }
 }
-
 /**
  * Calculate physical values for 0x10..0x27
  */

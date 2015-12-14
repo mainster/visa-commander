@@ -10,6 +10,7 @@
 #include "visa.h"
 #include "ioedit.h"
 #include "globals.h"
+#include "mdstatebar.h"
 
 class Driver;
 
@@ -34,47 +35,34 @@ Driver::Driver(QString eolPatt, bool newLine,
    QObject(parent) {
    QSETTINGS;
 
-
    MIN_FRAME_SIZE_VAR = config.value("ReadOnly/MIN_FRAME_SIZE",
                                      MIN_FRAMESIZE).toInt();
-
    serial = new QSerialPort();
    settings = new PortDialog();
    ioeditL  = IOEdit::getInstance(parent, location_Left);
-
-
-   /////////////////////////////////////
-   //   visa = Visa::getInstance();
-   /////////////////////////////////////
-
-   /** siehe TICKET_5548584
-   rxBuff.dataSync = new QString();
-   */
-   /** siehe TICKET_5548584 */
-   //   visa = Visa::getInstance();
+   statbar  = MDStateBar::getObjectPtr();
 
    rxBuff.eolPattern = eolPatt;
    rxBuff.appendNewline = newLine;
    rxBuff.hideFrameheader = removeHead;
 
-   rxBuffReq.data.clear();// = new QByteArray();
+   rxBuffReq.data.clear();
    rxBuffReq.expectedByteCount = 0;
    rxBuffReq.rxByteCount = 0;
 
-   connect(serial,
-           SIGNAL(error(QSerialPort::SerialPortError)), this,
-           SLOT(handleError(QSerialPort::SerialPortError)));
-
-   /** Connect the default serial data received slot. In normal program flow,
+   /**
+    * Connect the default serial data received slot. In normal program flow,
     * readData() should never be accessed in absence of a second, request-
     * dependent slot because the visascope only acts as a slave device.
     */
-   connect(serial,
-           SIGNAL(readyRead()), this,
-           SLOT(onCheckRespCmpl()));
-   connect(this,
-           SIGNAL(reqResponseFrameError(qint64)), this,
-           SLOT(handleError(qint64)));
+   connect( serial,     SIGNAL(readyRead()),
+            this,       SLOT(onCheckRespCmpl()));
+   connect( serial,     SIGNAL(error(QSerialPort::SerialPortError)),
+            this,       SLOT(handleError(QSerialPort::SerialPortError)));
+   connect( this,       SIGNAL(reqResponseFrameError(qint64)),
+            this,       SLOT(handleError(qint64)));
+   connect( this,       SIGNAL(criticalDriverError(QString)),
+            statbar,    SLOT(showError(QString)));
 
 }
 Driver::~Driver() {
