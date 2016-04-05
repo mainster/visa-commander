@@ -110,7 +110,8 @@ void Globals::setPathToConfig(const QString &str) {
    pathToConfigss = str;
 }
 QString Globals::getPathToDat() {
-   return pathToDat;
+    return QString("/opt/Visatronic/visascope-3.1/share/hardware_values/hardware_137000.dat");
+//   return pathToDat;
 }
 QString Globals::getPathToBackup() {
    //   if (pathToBackup.contains("$"))

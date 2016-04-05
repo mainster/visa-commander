@@ -12,6 +12,11 @@
 #include "globals.h"
 #include "portdialog.h"
 
+/* ======================================================================== */
+/*                          new something                                   */
+/* ======================================================================== */
+
+
 /**
  * Forward declaration of following classes is ok since we are only using
  * it for declaring class pointers
