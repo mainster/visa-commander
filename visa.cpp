@@ -239,7 +239,6 @@ Visa::~Visa() {
    QSETTINGS;
    config.setValue(objectName() + GEOM, saveGeometry());
    config.setValue(objectName() + STAT, saveState());
-
    delete ui;
 }
 
