@@ -117,6 +117,8 @@ Visa::Visa(QWidget *parent) :
    ui->setupUi(this);
 
    newParent = parent;
+   Globals *glob = Globals::getInstance();
+//   glob->initGlobals();
 
    QSETTINGS;
    le8a8bForm = Visa::form_bin;
@@ -163,12 +165,9 @@ Visa::Visa(QWidget *parent) :
    sniffTim->reload(0);
 #endif
 
-
-   //   /** Embedd the ioedit's instance widget into visa window */
+   /** Embedd the ioedit's instance widget into visa window */
    ui->splIOEd->addWidget( this->ioeditL );
    ui->splIOEd->addWidget( this->ioeditR );
-
-
 
    /**
     * Custom / User sequence timer. Periodically repeats the transmission
@@ -230,25 +229,16 @@ Visa::Visa(QWidget *parent) :
    //   timRefresh->start();
    refreshGS();
 
-#ifdef AUTORUN
-   QTimer::singleShot(100, Qt::PreciseTimer, this, SLOT(autoRunTimerSLOT()));
-#endif
-
-
    /** Start program heartbeat */
    hbeat->tim->start();
 
-
    pTw = ui->tableWidget;
-
-
-   this->installEventFilter( this );
+   //   this->installEventFilter( this );
 }
 Visa::~Visa() {
    QSETTINGS;
    config.setValue(objectName() + GEOM, saveGeometry());
    config.setValue(objectName() + STAT, saveState());
-
    delete ui;
 }
 
@@ -414,6 +404,7 @@ bool Visa::savePersistance() {
 /*                     timer slots                                          */
 /* ======================================================================== */
 void Visa::onTimHbeatTimeout() {
+
    /**
     * If calibration was successfull, periodic requests could be
     * transmitted
@@ -774,7 +765,7 @@ void Visa::onSerialBaudChanged(qint32 baud,
 
    QTextCursor cursor( ui->statusBar->getTeStat()->textCursor() );
    //   ui->teStateFooter->setCursorWidth(50);
-   cursor.setPosition(35, QTextCursor::KeepAnchor);
+//   cursor.setPosition(35, QTextCursor::KeepAnchor);
    cursor.setCharFormat(formatLHS);
    cursor.insertText("Baudrate:  ");
    cursor.setCharFormat(formatRHS);
@@ -1317,13 +1308,13 @@ bool Visa::getUiPeriodicReqIsChecked() {
 /* ======================================================================== */
 /*                     Event handler                                      */
 /* ======================================================================== */
-void Visa::keyPressEvent(QKeyEvent *event) {
+void Visa::keyPressEvent(QKeyEvent *ev) {
    bool ok = false;
    int val; int len;
    QString sval;
 
    /** If le8a8b has focus and key f got pressed, change le8a8b format */
-   if ((event->key() == Qt::Key_Escape) &&
+   if ((ev->key() == Qt::Key_Escape) &&
        (ui->le8a8b->hasFocus())) {
       QString s;
       sval = ui->le8a8b->text();
@@ -1357,13 +1348,19 @@ void Visa::keyPressEvent(QKeyEvent *event) {
          }
       }
    }
-   /**
-    * If Enter pressed event detected and the command line uiCommand has
-    * focus, emit a uiCommandQuery signal ...
-    */
-   if ((event->key() == Qt::Key_Enter) &&
-       (ui->uiCmdLine->hasFocus())) {
-      emit uiCmdLineQuery( ui->uiCmdLine->text() );
+   else {
+      /**
+       * If Enter pressed event detected and the command line uiCommand has
+       * focus, emit a uiCommandQuery signal ...
+       */
+      if ((ev->key() == Qt::Key_Enter) &&
+          (ui->uiCmdLine->hasFocus())) {
+         emit uiCmdLineQuery( ui->uiCmdLine->text() );
+      }
+      else {
+         ev->setAccepted( false );
+         QMainWindow::keyPressEvent(ev);
+      }
    }
 }
 void Visa::saveAllGeometrys() {

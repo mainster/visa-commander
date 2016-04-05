@@ -36,6 +36,11 @@ void myMessageOutput(QtMsgType type,
     }
 }
 
+QWidget* topLevelParentWidget (QWidget* widget) {
+   while (widget -> parentWidget()) widget = widget -> parentWidget() ;
+   return widget ;
+}
+
 MainWindow *w; 
 int x,y;
 

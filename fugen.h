@@ -7,9 +7,17 @@
 #include <QTime>
 #include <qmath.h>
 #include <stdint.h>
+#include <QProcess>
+#include <QLCDNumber>
+#include <QPushButton>
+#include <QLabel>
+#include <QLayout>
+#include <QGridLayout>
 
 #include "hwreg.h"
 #include "globals.h"
+#include "lcddisplay.h"
+
 
 namespace Ui {
 class FuGen;
@@ -19,7 +27,7 @@ class FuGen;
 class VisaReg;
 class Visa;
 class IOEdit;
-
+class LcdDisplay;
 
 /*!
  \brief Class FuGen provides a configuration and setpoint interface to the DDS
@@ -45,6 +53,7 @@ public:
    enum add_type {
       type_increment,
       type_replace,
+      type_decadeShift,
    };
    Q_DECLARE_FLAGS(add_types, add_type)
 
@@ -234,22 +243,35 @@ public:
    uint16_t calcOffsRegVal(double physOffs);
    static double Kx(FuGens::amp_rngs fRng);
 
+   LcdDisplay *getLcdFreqObj() const;
+   LcdDisplay *getLcdAmpObj() const;
+   LcdDisplay *getLcdOffsObj() const;
+   LcdDisplay *getLcdDutyObj() const;
+   QList<LcdDisplay *> getLcdObjs() const;
+
+
 public slots:
    void onCyclic();
-   void wheelEvent(QWheelEvent *event);
    void onBtnOnOffClicked();
    void onConfigChangeTriggered(int idx = -1);
    void loadSineIntoFPGA();
    static FuGens::amp_rngs calcAmp_rng();
+   void handleKeyPressEvent(QKeyEvent *ev);
+
+   LcdDisplay *getSelectedLcd() const;
+   QString getSelectedLcdNam() const;
+protected slots:
+   void wheelEvent(QWheelEvent *ev);
 
 private:
    Ui::FuGen   *ui;
    QTimer      *timCycl;
-
-   IOEdit *ioeditL, *ioeditR;
-
+   IOEdit      *ioeditL, *ioeditR;
    Visa        *visa;
    int         mouseWheelCnt;
+   QGridLayout *gLayLcd;
+   LcdDisplay  *lcdFreq, *lcdAmp, *lcdOffs, *lcdDuty;
+   QList<LcdDisplay *> mLcds;
 
    double
    DVAMP_PER_TICK,            //< ~53.3 mV/TickV

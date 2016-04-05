@@ -12,6 +12,7 @@
 #include <iostream>
 #include <cstdlib>
 
+class Globals;
 
 #define LOAD_HARDWARE_DAT_FROM_FILESYSTEM
 //#undef LOAD_HARDWARE_DAT_FROM_FILESYSTEM
@@ -85,11 +86,52 @@
 #define LIM_12BIT_UINT ((uint16_t) pow(2, 12)-1)   // 4095
 
 
-#define DEFAULT_DAT_FILE tr("/opt/Visatronic/visascope-3.1/share/hardware_values/hardware_137000.dat")
-//#define DEFAULT_DAT_FILE_SORT "/opt/Visatronic/visascope-3.1/share/hardware_values/rewSort_hardware_137000.dat"
+//#define pathToDat tr("/opt/Visatronic/visascope-3.1/share/hardware_values/hardware_137000.dat")
+#define DEFAULT_BACKUP_PATH tr("/tmp/visacommand_tmp")
+//#define pathToDat_SORT "/opt/Visatronic/visascope-3.1/share/hardware_values/rewSort_hardware_137000.dat"
 //typedef QVector<double> calDat_t;
 
 #define DVM_DC_TITLE QString("Dvm DC")
 #define DVM_ACDC_TITLE QString("Dvm ACDC")
 
+class Globals {
+
+   explicit Globals();
+
+public:
+   ~Globals();
+   static Globals *getObjPtr() {
+      return inst;
+   }
+   static Globals *getInstance() {
+      if (inst == 0) {
+         inst = new Globals();
+      }
+      return inst;
+   }
+//   static void initGlobals();
+
+   QSettings * conf;
+public slots:
+   QString getPathToDat();
+   QString getPathToBackup();
+   QString getPathToConfig();
+
+   void setPathToDat(const QString str);
+   void setPathToBackup(const QString &str);
+   void setPathToConfig(const QString &str);
+
+private:
+   QString pathToDat;
+   QString pathToBackup,pathToConfigss;
+
+   static const QStringList DEFAULT_PATH_TO_CONFIG;
+   QStringList * pathToConfig;
+
+   static Globals *inst;
+
+};
+
+
 #endif
+

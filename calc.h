@@ -10,10 +10,13 @@
 #include <stdint.h>
 #include <qmath.h>
 #include <QString>
+#include <QFileDialog>
+#include <QFile>
 
 #include "ioedit.h"
 #include "visa.h"
 #include "visareg.h"
+#include "globals.h"
 
 
 class Calc : public QObject {
@@ -42,6 +45,14 @@ public:
       float    H;       //< Corrected hw value for later calculation  
    } hw_calib_t;
    Q_DECLARE_FLAGS(tolTypes, tolType)
+
+   enum retVal {
+      ret_successfull,
+      ret_path_of_hwDat_changed,
+      ret_bad_path_to_hwDat,
+      ret_fail,
+   };
+   Q_DECLARE_FLAGS(retVals, retVal)
 
    static Calc *getInstance(QWidget *visaregPtr = 0) {
       if(inst == 0)
@@ -76,7 +87,7 @@ signals:
 public slots:
 
    void onCalibInfoAvailable();
-   int mathAdjustment(QVector<hw_calib_t> &hwCal,
+   retVals mathAdjustment(QVector<hw_calib_t> &hwCal,
                         QVector<uint16_t> &Ctol);
    int loadHardwareDat(QString path);
    void loadHardwareDat();
@@ -91,7 +102,7 @@ private:
    Visa        * visa;
    VisaReg     * visareg;
    IOEdit      *ioeditL, *ioeditR;
-
+   Globals     * glob;
 
 //   QLocale     german;
 };

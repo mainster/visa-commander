@@ -270,8 +270,8 @@ QByteArray VisaReg::assambleStream( QVector<HwReg*> &regsV,
 }
 void VisaReg::add2TxStream(HwReg *reg) {
    /** Here some "default" registers could be pushed. */
-   hwRegs.push_back( regLedVlogic );
-   hwRegs.push_back( regScopeXctrl );
+//   hwRegs.push_back( regLedVlogic );
+//   hwRegs.push_back( regScopeXctrl );
 
    /** Push the altered register to tx stream */
    hwRegs.push_back( reg );

@@ -12,6 +12,11 @@
 #include "globals.h"
 #include "portdialog.h"
 
+/* ======================================================================== */
+/*                          new something                                   */
+/* ======================================================================== */
+
+
 /**
  * Forward declaration of following classes is ok since we are only using
  * it for declaring class pointers
@@ -19,11 +24,10 @@
 class Visa;
 class MainWindow;
 class IOEdit;
+class MDStateBar;
 //class PortDialog;
 
-
 class Driver : public QObject {
-
    Q_OBJECT
 
 public:
@@ -44,10 +48,6 @@ public:
    static Driver *getObjectPtr() {
       return instance;
    }
-
-   PortDialog *settings;
-   QSerialPort *serial;
-   int MIN_FRAME_SIZE_VAR;
 
    struct {
       /** 16-10-2015    abschaltbarer rx frame error handler eingeführt,
@@ -99,6 +99,9 @@ public:
       }
    } rxBuffAlt;
 
+   PortDialog *settings;
+   QSerialPort *serial;
+   int MIN_FRAME_SIZE_VAR;
    struct rxBuffReq_t {
       QByteArray  data;
       qint64      expectedByteCount;
@@ -117,7 +120,6 @@ public:
          expectedByteCount = 0;
       }
    };
-
    rxBuffReq_t rxBuffReq;
    PortDialog::Settings getSettings();
    bool isPortOpen();
@@ -140,18 +142,14 @@ public slots:
    }
    void openSerialPort();
    void closeSerialPort();
-   void handleError(
-         QSerialPort::SerialPortError error);
+   void handleError(QSerialPort::SerialPortError error);
    void onOpenPortDialog();
    QIODevice::OpenMode getOpenMode();
-   int writeData(const QByteArray &data,
-                 bool putToConsole = true);
+   int writeData(const QByteArray &data,bool putToConsole = true);
    void setHideFrameheader(bool choose = 0);
    void setAppendNewlineChar(bool choose = 1);
-   void flushSyncedBuff(qint32 pos = -1,
-                        qint32 length = -1);
-   void flushSyncedReqBuff(qint32 pos = -1,
-                           qint32 length = -1);
+   void flushSyncedBuff(qint32 pos = -1,qint32 length = -1);
+   void flushSyncedReqBuff(qint32 pos = -1, qint32 length = -1);
    void handleError(qint64 customError);
    void onCheckRespCmpl();
    void ackResponseFrameError();
@@ -162,7 +160,7 @@ private:
    static Driver  *instance;
    IOEdit         *ioeditL;
    Visa           *visa;
-
+   MDStateBar     *statbar;
    QString        portName;
    int Baudrate;
 };

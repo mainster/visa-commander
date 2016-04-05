@@ -76,57 +76,58 @@ IOEdit::IOEdit(QWidget *parent, quint64 maxChars)
 #define QFOLDINGSTART {
    /** RINGBUFFER */
 
-   QWidget *ringWin = new QWidget( parentWidget() );
-   cbFindSeq = new QComboBox(this);
-   rbShowHeader = new QRadioButton(this);
-   rbShowStdBy = new QRadioButton(this);
-   rbDualFilter = new QRadioButton(this);
+   if (0) {
+      QWidget *ringWin = new QWidget( parentWidget() );
+      cbFindSeq = new QComboBox(this);
+      rbShowHeader = new QRadioButton(this);
+      rbShowStdBy = new QRadioButton(this);
+      rbDualFilter = new QRadioButton(this);
 
-   cbFindSeq->setEditable(true);
-   cbFindSeq->setMinimumWidth(200);
-   //   cbFindSeq->setMaximumWidth(600);
-   cbFindSeq->setMaximumHeight(25);
+      cbFindSeq->setEditable(true);
+      cbFindSeq->setMinimumWidth(200);
+      //   cbFindSeq->setMaximumWidth(600);
+      cbFindSeq->setMaximumHeight(25);
 
-   cbFindSeq->addItem(vseq.FUGENOFF);
-   cbFindSeq->addItem(vseq.FUGENON);
-   cbFindSeq->addItem(vseq.SCOPEON);
-   cbFindSeq->addItem(vseq.STARTSEQ);
-   cbFindSeq->addItem(vseq.STDBY);
-   cbFindSeq->addItem(vseq.STDBY_POWERON);
-   cbFindSeq->addItem(vseq.STDBY_SCOPE);
-   cbFindSeq->addItem(vseq.STDBY_SCOPE_AUTOTRIG);
-   cbFindSeq->addItem(vseq.STDBYSML);
-   cbFindSeq->addItem(vseq.VADCOFF);
-   cbFindSeq->addItem(vseq.VADCON);
-   cbFindSeq->addItem(vseq.VDCOFF);
-   cbFindSeq->addItem(vseq.VDCON);
+      cbFindSeq->addItem(vseq.FUGENOFF);
+      cbFindSeq->addItem(vseq.FUGENON);
+      cbFindSeq->addItem(vseq.SCOPEON);
+      cbFindSeq->addItem(vseq.STARTSEQ);
+      cbFindSeq->addItem(vseq.STDBY);
+      cbFindSeq->addItem(vseq.STDBY_POWERON);
+      cbFindSeq->addItem(vseq.STDBY_SCOPE);
+      cbFindSeq->addItem(vseq.STDBY_SCOPE_AUTOTRIG);
+      cbFindSeq->addItem(vseq.STDBYSML);
+      cbFindSeq->addItem(vseq.VADCOFF);
+      cbFindSeq->addItem(vseq.VADCON);
+      cbFindSeq->addItem(vseq.VDCOFF);
+      cbFindSeq->addItem(vseq.VDCON);
 
 
-   QVector<QRadioButton *> rbs;
-   rbs.append(rbShowHeader);
-   rbs.append(rbShowStdBy);
-   rbs.append(rbDualFilter);
+      QVector<QRadioButton *> rbs;
+      rbs.append(rbShowHeader);
+      rbs.append(rbShowStdBy);
+      rbs.append(rbDualFilter);
 
-   for (int i=0; i<3;i++) {
-      rbs[i]->setAutoExclusive(false);
-      rbs[i]->setCheckable(true);
-      rbs[i]->setChecked(false);
+      for (int i=0; i<3;i++) {
+         rbs[i]->setAutoExclusive(false);
+         rbs[i]->setCheckable(true);
+         rbs[i]->setChecked(false);
+      }
+
+      rbs[0]->setText("rbShowHeader");
+      rbs[1]->setText("rbShowStdBy");
+      rbs[2]->setText("rbDualFilter");
+      rbs[2]->setChecked(true);
+
+      QGridLayout *gl = new QGridLayout(this);
+      gl->addWidget(cbFindSeq,0,0,Qt::AlignLeft);
+      gl->addWidget(rbShowHeader,1,0,Qt::AlignLeft);
+      gl->addWidget(rbShowStdBy,2,0,Qt::AlignLeft);
+      gl->addWidget(rbDualFilter,3,0,Qt::AlignLeft);
+
+      ringWin->setLayout(gl);
+      ringWin->show();
    }
-
-   rbs[0]->setText("rbShowHeader");
-   rbs[1]->setText("rbShowStdBy");
-   rbs[2]->setText("rbDualFilter");
-   rbs[2]->setChecked(true);
-
-   QGridLayout *gl = new QGridLayout(this);
-   gl->addWidget(cbFindSeq,0,0,Qt::AlignLeft);
-   gl->addWidget(rbShowHeader,1,0,Qt::AlignLeft);
-   gl->addWidget(rbShowStdBy,2,0,Qt::AlignLeft);
-   gl->addWidget(rbDualFilter,3,0,Qt::AlignLeft);
-
-   ringWin->setLayout(gl);
-   ringWin->show();
-
 
    /** RINGBUFFER END */
 #define QFOLDINGEND }
