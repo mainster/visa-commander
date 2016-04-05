@@ -248,7 +248,6 @@ void Visa::autoRunTimerSLOT( ) {
    ui->actionConnect->triggered(true);
    //   ui->actionOpenDvm->setChecked(true);
    ui->actionOpenDvm->trigger();
-
 }
 void Visa::onActionRegistersOverview() {
    regFrm = new Register(this);
